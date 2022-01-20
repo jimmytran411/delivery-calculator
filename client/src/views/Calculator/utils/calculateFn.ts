@@ -1,5 +1,5 @@
 import { memoize } from 'lodash';
-import { DayInWeek } from '../../../commonTypes';
+import { DayInWeek, PromotionTime } from '../../../commonTypes';
 
 const baseCartValue = 10;
 const baseDistanceValue = {
@@ -44,7 +44,7 @@ const calculateDistanceFee = memoize((distance: number) => {
         Math.ceil((distance - initialDistance) / additionalDistanceBase) * additionalDistanceCharge;
 });
 
-const calculateMultiplier = (day: DayInWeek, hour: number) => {
+const calculateMultiplier = (day: DayInWeek, hour: number, promotionDate: PromotionTime[]) => {
   const promotions = promotionDate.filter(
     ({ day: promotionDay, timePeriod }) =>
       day === promotionDay && timePeriod.some((period) => hour >= period[0] && hour <= period[1])
@@ -61,4 +61,12 @@ const calculateDeliveryFee = pipe(
   calculateSurchargeFromNumberOfItems
 );
 
-export { calculateMultiplier, calculateDeliveryFee };
+export {
+  maximumDeliveryFee,
+  calculateMultiplier,
+  calculateDeliveryFee,
+  calculateSurchargeFromCartValue,
+  calculateDistanceFee,
+  calculateSurchargeFromNumberOfItems,
+  promotionDate,
+};

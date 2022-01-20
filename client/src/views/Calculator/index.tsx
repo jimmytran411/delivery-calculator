@@ -18,7 +18,6 @@ export const Calculator = () => {
     e.preventDefault();
 
     const { cartValue, deliveryDistance, amountOfItems } = inputFields;
-
     const deliveryFee = calculateDeliveryFee(cartValue, deliveryDistance, amountOfItems);
 
     setDeliveryPrice(deliveryFee);

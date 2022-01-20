@@ -5,7 +5,7 @@ import { InputField } from '../Components/InputField';
 test('It should display inputfield component, user should be able to type into the input field and it should display error if there is any', () => {
   const handleInput = jest.fn();
   const { getByText, getByLabelText, rerender } = render(
-    <InputField name="test field" error="" handleInput={handleInput} />
+    <InputField label="test field" name="test field" error="" handleInput={handleInput} />
   );
 
   const field = getByLabelText(/test field/i);
