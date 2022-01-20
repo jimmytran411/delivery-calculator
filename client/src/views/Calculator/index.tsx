@@ -1,16 +1,10 @@
 import React, { useCallback, useState } from 'react';
 import { Button, Grid } from '@material-ui/core';
-import _, { identity } from 'lodash';
+import _ from 'lodash';
 
 import { InputField } from './Components/InputField';
 import { useFormStyles } from '../../styles/formStyles';
-import {
-  calculate,
-  calculateDistancePrice,
-  calculateSurchargeFromCartValue,
-  calculateSurchargeFromNumberOfItems,
-  maximumDeliveryPrice,
-} from './calculateFn';
+import { calculateDeliveryFee } from './utils/calculateFn';
 
 export const Calculator = () => {
   const [inputFields, setInputFields] = useState({ cartValue: 0, deliveryDistance: 0, amountOfItems: 1 });
@@ -23,15 +17,10 @@ export const Calculator = () => {
     e.preventDefault();
 
     const { cartValue, deliveryDistance, amountOfItems } = inputFields;
-    const calculateDeliveryPrice = calculate();
-    const calculateSurcharge = calculate();
-    calculateSurcharge(cartValue, calculateSurchargeFromCartValue);
-    calculateSurcharge(amountOfItems, calculateSurchargeFromNumberOfItems);
 
-    calculateDeliveryPrice(deliveryDistance, calculateDistancePrice);
-    calculateDeliveryPrice(calculateSurcharge(0, identity), identity);
-    const price = calculateDeliveryPrice(0, identity);
-    setDeliveryPrice(price > maximumDeliveryPrice ? 15 : price);
+    const deliveryFee = calculateDeliveryFee(cartValue, deliveryDistance, amountOfItems);
+
+    setDeliveryPrice(deliveryFee);
   };
 
   const handleInput = useCallback(
