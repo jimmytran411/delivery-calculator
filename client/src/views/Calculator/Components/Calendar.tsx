@@ -17,7 +17,11 @@ import { v4 } from 'uuid';
 
 import { daysOfWeek, getDates, getNextMonth, getPreviousMonth, monthLong, today } from '../utils/date';
 
-export const Calendar = () => {
+interface CalendarProps {
+  handleSelectDate: (date: number) => void;
+}
+
+export const Calendar: React.FC<CalendarProps> = ({ handleSelectDate }) => {
   const datesOfCurrentMonth = useMemo(() => getDates(identity), [getDates]);
   const [dates, setDates] = useState(datesOfCurrentMonth);
 
@@ -31,8 +35,6 @@ export const Calendar = () => {
   const handleNextMonth = () => {
     setDates(getDates(getNextMonth));
   };
-
-  const handleSelectDate = (date: number) => {};
 
   return (
     <TableContainer component={Paper}>
