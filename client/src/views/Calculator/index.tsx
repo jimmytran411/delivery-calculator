@@ -5,6 +5,7 @@ import _ from 'lodash';
 import { InputField } from './Components/InputField';
 import { useFormStyles } from '../../styles/formStyles';
 import { calculateDeliveryFee } from './utils/calculateFn';
+import { Calendar } from './Components/Calendar';
 
 export const Calculator = () => {
   const [inputFields, setInputFields] = useState({ cartValue: 0, deliveryDistance: 0, amountOfItems: 1 });
@@ -57,6 +58,8 @@ export const Calculator = () => {
             error={errors.amountOfItems}
             handleInput={(input) => handleInput(input, 'amountOfItems')}
           />
+
+          <Calendar />
 
           <Button className={submitBtn} variant="outlined" color="primary" type="submit">
             Calculate Delivery Price
