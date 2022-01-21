@@ -1,19 +1,26 @@
 import React, { useCallback, useState } from 'react';
-import { Button, Grid } from '@material-ui/core';
+import { Button, FormControl, Grid, InputAdornment, InputLabel, OutlinedInput } from '@material-ui/core';
 import _ from 'lodash';
 
 import { InputField } from './Components/InputField';
 import { useFormStyles } from '../../styles/formStyles';
-import { calculateDeliveryFee } from './utils/calculateFn';
-import { Calendar } from './Components/Calendar';
-import { today } from './utils/date';
+import { calculateDeliveryFee, calculateMultiplier, maximumDeliveryFee, promotionDate } from './utils/calculateFn';
+import { daysOfWeekLong, monthLong, today } from './utils/date';
+import { CalendarMenu } from './Components/CalendarMenu';
+import { DeliveryHours } from './Components/DeliveryHours';
+import { DayInWeek } from '../../commonTypes';
 
 export const Calculator = () => {
   const [inputFields, setInputFields] = useState({
     cartValue: 0,
     deliveryDistance: 0,
     amountOfItems: 1,
-    day: today.day,
+    day: {
+      date: today.date,
+      day: daysOfWeekLong[today.day],
+      month: today.month,
+      hour: today.hour,
+    },
   });
   const [errors, setErrors] = useState({ cartValue: '', deliveryDistance: '', amountOfItems: '' });
   const [deliveryPrice, setDeliveryPrice] = useState(0);
@@ -23,9 +30,10 @@ export const Calculator = () => {
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
 
-    const { cartValue, deliveryDistance, amountOfItems } = inputFields;
-    const deliveryFee = calculateDeliveryFee(cartValue, deliveryDistance, amountOfItems);
-    setDeliveryPrice(deliveryFee);
+    const { cartValue, deliveryDistance, amountOfItems, day } = inputFields;
+    let deliveryFee = calculateDeliveryFee(cartValue, deliveryDistance, amountOfItems);
+    deliveryFee *= calculateMultiplier(day.day, day.hour, promotionDate);
+    setDeliveryPrice(deliveryFee >= maximumDeliveryFee ? maximumDeliveryFee : deliveryFee.toFixed(2));
   };
 
   const handleInput = useCallback(
@@ -40,8 +48,14 @@ export const Calculator = () => {
     []
   );
 
-  const handleSelectDate = (date: number) => {
-    setInputFields((prev) => ({ ...prev, day: date }));
+  const handleSelectDate = (date: number, day: DayInWeek, month: number) => {
+    setInputFields((prev) => ({ ...prev, day: { ...prev.day, date, day, month } }));
+  };
+
+  const handleSelectTime = (time: string) => {
+    time === 'now'
+      ? setInputFields((prev) => ({ ...prev, day: { ...prev.day, hour: today.hour } }))
+      : setInputFields((prev) => ({ ...prev, day: { ...prev.day, hour: +time.split(':')[0] } }));
   };
 
   return (
@@ -67,7 +81,24 @@ export const Calculator = () => {
             handleInput={(input) => handleInput(input, 'amountOfItems')}
           />
 
-          <Calendar handleSelectDate={handleSelectDate} />
+          <FormControl variant="outlined">
+            <InputLabel htmlFor="date">{_.capitalize('delivery date')}</InputLabel>
+            <OutlinedInput
+              id="date"
+              type="text"
+              required={true}
+              label="date"
+              disabled
+              endAdornment={
+                <InputAdornment position="end">
+                  <CalendarMenu handleSelectDate={handleSelectDate} />
+                </InputAdornment>
+              }
+              value={`${inputFields.day.day} ${inputFields.day.date} ${monthLong[inputFields.day.month - 1]}`}
+            />
+          </FormControl>
+
+          <DeliveryHours handleSelectTime={handleSelectTime} />
 
           <Button className={submitBtn} variant="outlined" color="primary" type="submit">
             Calculate Delivery Price
@@ -75,7 +106,7 @@ export const Calculator = () => {
         </form>
       </Grid>
       <Grid item xs>
-        {deliveryPrice}
+        Delivery Price: {deliveryPrice}€
       </Grid>
     </Grid>
   );

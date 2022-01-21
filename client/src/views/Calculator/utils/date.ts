@@ -1,4 +1,5 @@
 import { chunk } from 'lodash';
+import { DayInWeek } from '../../../commonTypes';
 
 interface CurrentDate {
   currentMonth: number;
@@ -14,6 +15,7 @@ const deliveryHours = Array.from(
   (e, i) => `${i + 10 >= 24 ? i + 10 - 24 : i + 10}:00 - ${i + 11 >= 24 ? i + 11 - 24 : i + 11}:00`
 );
 const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const daysOfWeekLong: DayInWeek[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const monthLong = [
   'January',
   'February',
@@ -36,6 +38,7 @@ const today = {
   month: currentDay.getMonth() + 1,
   year: currentDay.getFullYear(),
   day: currentDay.getDay(),
+  hour: currentDay.getHours(),
 };
 
 const isLeapYear = (year: number) => year % 4 === 0;
@@ -130,4 +133,14 @@ const getPreviousMonth = (current: CurrentDate): CurrentDate => {
 
 const getDates = getNewDate();
 
-export { deliveryHours, monthLong, monthShort, daysOfWeek, getDates, getNextMonth, getPreviousMonth, today };
+export {
+  deliveryHours,
+  monthLong,
+  monthShort,
+  daysOfWeek,
+  getDates,
+  getNextMonth,
+  getPreviousMonth,
+  today,
+  daysOfWeekLong,
+};
