@@ -30,3 +30,4 @@ jobs:
           yarn test
         env:
           CI: true
+          SKIP_PREFLIGHT_CHECK: true

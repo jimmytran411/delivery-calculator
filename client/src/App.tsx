@@ -4,6 +4,7 @@ import { ConnectedRouter } from 'connected-react-router';
 
 import makeStore from './rootRedux/store';
 import { history } from './rootRedux/store';
+import { Calculator } from './views/Calculator';
 
 export const store = makeStore();
 export type RootState = ReturnType<typeof store.getState>;
@@ -13,7 +14,7 @@ const App: React.FC = () => {
   return (
     <Provider store={store}>
       <ConnectedRouter history={history}>
-        <div>Hello world</div>
+        <Calculator />
       </ConnectedRouter>
     </Provider>
   );
