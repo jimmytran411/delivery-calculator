@@ -1,3 +1,5 @@
+import { chunk } from 'lodash';
+
 interface CurrentDate {
   currentMonth: number;
   currentYear: number;
@@ -11,7 +13,7 @@ const deliveryHours = Array.from(
   },
   (e, i) => `${i + 10 >= 24 ? i + 10 - 24 : i + 10}:00 - ${i + 11 >= 24 ? i + 11 - 24 : i + 11}:00`
 );
-const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat'];
+const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const monthLong = [
   'January',
   'February',
@@ -52,53 +54,34 @@ const getLastDateInMonth = (month: number, year: number) => {
 };
 
 // Fill the 6 (or 5) x 7 array (Calendar with 6 (or 5) rows and 7 columns)
-const getDatesOfMonth = (positionOfFirstDay: number, month: number, year: number): number[][] => {
+const getDatesOfMonth = (positionOfFirstDate: number, month: number, year: number): number[][] => {
   const lastDateOfLastMonth = getLastDateInMonth(month - 1, year);
   const lastDateOfThisMonth = getLastDateInMonth(month, year);
 
-  const firstRow = Array.from(
-    {
-      length: 7,
-    },
-    (e, index) => {
-      const date = 1 + index - positionOfFirstDay;
+  const numberOfRows = positionOfFirstDate + lastDateOfThisMonth > 35 ? 6 : 5;
 
-      return date > 0 ? date : lastDateOfLastMonth + date;
-    }
+  const d = Array.from({ length: numberOfRows * 7 - positionOfFirstDate }, (e, index) =>
+    index + 1 > lastDateOfThisMonth ? index + 1 - lastDateOfThisMonth : index + 1
+  );
+  const datesBeforeFirstDay = Array.from(
+    { length: positionOfFirstDate },
+    (e, i) => i - positionOfFirstDate + 1 + lastDateOfLastMonth
   );
 
-  const dates = Array.from(
-    {
-      length: 6,
-    },
-    (e, index) =>
-      firstRow.map((date) => {
-        date = date + index * 7;
-        if (date > lastDateOfLastMonth + lastDateOfThisMonth) {
-          return date - (lastDateOfLastMonth + lastDateOfThisMonth);
-        }
-        if (date > lastDateOfLastMonth) {
-          return date - lastDateOfLastMonth;
-        }
-        return date;
-      })
-  );
-
-  dates[5].indexOf(1) < 0 && dates.pop();
-
+  const dates = chunk([...datesBeforeFirstDay, ...d], 7);
   return dates;
 };
 
 const getNewDate = () => {
   const { day, date, month, year } = today;
 
-  let positionOfFirstDay = day - ((date - 1) % 7); // (today's column) - ((distance between today and the first day) % 7 to pass all the full row(s))
-  positionOfFirstDay = positionOfFirstDay > 0 ? positionOfFirstDay : 7 + positionOfFirstDay;
+  let positionOfFirstDate = day - ((date - 1) % 7); // (today's column) - ((distance between today and the first day) % 7 to pass all the full row(s))
+  positionOfFirstDate = positionOfFirstDate > 0 ? positionOfFirstDate : 7 + positionOfFirstDate;
 
   let current = {
     currentMonth: month,
     currentYear: year,
-    dates: getDatesOfMonth(positionOfFirstDay, month, year),
+    dates: getDatesOfMonth(positionOfFirstDate, month, year),
   };
 
   return (f: any): CurrentDate => {
@@ -113,13 +96,13 @@ const getNextMonth = (current: CurrentDate): CurrentDate => {
   let nextMonth = currentMonth + 1;
   const year = nextMonth > 12 ? currentYear + 1 : currentYear;
   nextMonth = nextMonth > 12 ? nextMonth - 12 : nextMonth;
-  const positionOfFirstDay = dates[dates.length - 1].indexOf(1);
+  const positionOfFirstDate = dates[dates.length - 1].indexOf(1);
 
   return {
     ...current,
     currentMonth: nextMonth,
     currentYear: year,
-    dates: getDatesOfMonth(positionOfFirstDay >= 0 ? positionOfFirstDay : 0, nextMonth, year),
+    dates: getDatesOfMonth(positionOfFirstDate >= 0 ? positionOfFirstDate : 0, nextMonth, year),
   };
 };
 
@@ -132,16 +115,16 @@ const getPreviousMonth = (current: CurrentDate): CurrentDate => {
 
   const lastDateOfLastMonth = getLastDateInMonth(previousMonth, year);
   let positionOfLastDate = dates[0].indexOf(lastDateOfLastMonth);
-  positionOfLastDate = positionOfLastDate < 1 ? 6 : positionOfLastDate;
+  positionOfLastDate = positionOfLastDate < 0 ? 6 : positionOfLastDate;
 
-  let positionOfFirstDay = positionOfLastDate - ((lastDateOfLastMonth - 1) % 7);
-  positionOfFirstDay = positionOfFirstDay > 0 ? positionOfFirstDay : 7 + positionOfFirstDay;
+  let positionOfFirstDate = positionOfLastDate - ((lastDateOfLastMonth - 1) % 7);
+  positionOfFirstDate = positionOfFirstDate > 0 ? positionOfFirstDate : 7 + positionOfFirstDate;
 
   return {
     ...current,
     currentMonth: previousMonth,
     currentYear: year,
-    dates: getDatesOfMonth(positionOfFirstDay, previousMonth, year),
+    dates: getDatesOfMonth(positionOfFirstDate, previousMonth, year),
   };
 };
 

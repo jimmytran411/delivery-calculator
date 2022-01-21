@@ -6,9 +6,15 @@ import { InputField } from './Components/InputField';
 import { useFormStyles } from '../../styles/formStyles';
 import { calculateDeliveryFee } from './utils/calculateFn';
 import { Calendar } from './Components/Calendar';
+import { today } from './utils/date';
 
 export const Calculator = () => {
-  const [inputFields, setInputFields] = useState({ cartValue: 0, deliveryDistance: 0, amountOfItems: 1 });
+  const [inputFields, setInputFields] = useState({
+    cartValue: 0,
+    deliveryDistance: 0,
+    amountOfItems: 1,
+    day: today.day,
+  });
   const [errors, setErrors] = useState({ cartValue: '', deliveryDistance: '', amountOfItems: '' });
   const [deliveryPrice, setDeliveryPrice] = useState(0);
 
@@ -19,7 +25,6 @@ export const Calculator = () => {
 
     const { cartValue, deliveryDistance, amountOfItems } = inputFields;
     const deliveryFee = calculateDeliveryFee(cartValue, deliveryDistance, amountOfItems);
-
     setDeliveryPrice(deliveryFee);
   };
 
@@ -34,6 +39,10 @@ export const Calculator = () => {
     }, 500),
     []
   );
+
+  const handleSelectDate = (date: number) => {
+    setInputFields((prev) => ({ ...prev, day: date }));
+  };
 
   return (
     <Grid container>
@@ -58,7 +67,7 @@ export const Calculator = () => {
             handleInput={(input) => handleInput(input, 'amountOfItems')}
           />
 
-          <Calendar />
+          <Calendar handleSelectDate={handleSelectDate} />
 
           <Button className={submitBtn} variant="outlined" color="primary" type="submit">
             Calculate Delivery Price
