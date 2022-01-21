@@ -21,14 +21,14 @@ const maximumDeliveryFee = 15;
 const add = (x: number, y: number) => x + y;
 const pipe =
   (...fns: any[]) =>
-  (...args: any[]) =>
-    fns.reduce(
-      (acc, currentFn, index) => (acc >= maximumDeliveryFee ? maximumDeliveryFee : add(acc, currentFn(args[index]))),
-      0
-    );
+  (...args: any[]) => {
+    const res = fns.reduce((acc, currentFn, index) => (acc < 0 ? acc : add(acc, currentFn(args[index]))), 0); // -1 trigger a stop for the pipe
+    if (res < 0) return 0;
+    return res >= maximumDeliveryFee ? maximumDeliveryFee : res;
+  };
 
 const calculateSurchargeFromCartValue = memoize((cartValue: number) =>
-  cartValue < baseCartValue ? baseCartValue - cartValue : 0
+  cartValue >= 100 ? -1 : cartValue < baseCartValue ? baseCartValue - cartValue : 0
 );
 
 const calculateSurchargeFromNumberOfItems = memoize((numberOfItems: number) => {

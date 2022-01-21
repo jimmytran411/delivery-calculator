@@ -18,7 +18,7 @@ describe('Test functions calculating Delivery Fee', () => {
   test('Delivery fee should be 2€ for the first 1km, and 1€ for every additional 500m', () => {
     expect(calculateDistanceFee(500)).toBe(2);
     expect(calculateDistanceFee(1001)).toBe(3);
-    expect(calculateDistanceFee(2000)).toBe(4);
+    expect(calculateDistanceFee(1501)).toBe(4);
   });
 
   test('If the number of items is five or more, an additional 50 cent surcharge is added for each item above four', () => {
@@ -42,9 +42,10 @@ describe('Test functions calculating Delivery Fee', () => {
     expect(calculateMultiplier('Friday', 15, promotionDate)).toBe(1.1);
   });
 
-  test(`It should calculate delivery fee with maximum value does not exceed ${maximumDeliveryFee}`, () => {
+  test(`It should calculate delivery fee with maximum value does not exceed ${maximumDeliveryFee}, delivery fee will be 0 with cartValue equal or greater than 100`, () => {
     const input = { cartValue: 9, deliveryDistance: 1000, amountOfItems: 1 };
     expect(calculateDeliveryFee(input.cartValue, input.deliveryDistance, input.amountOfItems)).toBe(3);
-    expect(calculateDeliveryFee(12, 1001, 6)).toBe(4);
+    expect(calculateDeliveryFee(12, 15001, 1)).toBe(15);
+    expect(calculateDeliveryFee(100, 15001, 1)).toBe(0);
   });
 });
