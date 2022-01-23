@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import { InputField } from './Components/InputField';
 import { useFormStyles } from '../../styles/formStyles';
-import { calculateDeliveryFee, calculateMultiplier, maximumDeliveryFee, promotionDate } from './utils/calculateFn';
+import { calculateDeliveryFee, promotionDate } from './utils/calculateFn';
 import { daysOfWeekLong, monthLong, today } from './utils/date';
 import { CalendarMenu } from './Components/CalendarMenu';
 import { DeliveryHours } from './Components/DeliveryHours';
@@ -31,9 +31,10 @@ export const Calculator = () => {
     e.preventDefault();
 
     const { cartValue, deliveryDistance, amountOfItems, day } = inputFields;
-    let deliveryFee = calculateDeliveryFee(cartValue, deliveryDistance, amountOfItems);
-    deliveryFee *= calculateMultiplier(day.day, day.hour, promotionDate);
-    setDeliveryPrice(deliveryFee >= maximumDeliveryFee ? maximumDeliveryFee : deliveryFee.toFixed(2));
+
+    setDeliveryPrice(
+      calculateDeliveryFee(cartValue, deliveryDistance, amountOfItems, { day: day.day, hour: day.hour, promotionDate })
+    );
   };
 
   const handleInput = useCallback(

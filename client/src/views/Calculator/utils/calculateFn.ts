@@ -20,13 +20,16 @@ const promotionDate: PromotionTime[] = [
 const maximumDeliveryFee = 15;
 
 const add = (x: number, y: number) => x + y;
+const multiply = (x: number, y: number) => x * y;
 const pipe =
   (...fns: any[]) =>
   (...args: any[]) => {
-    const res = fns.reduce((acc, currentFn, index) => (acc < 0 ? acc : add(acc, currentFn(args[index]))), 0); // -1 trigger a stop for the pipe
+    const res = fns.reduce((acc, currentFn, index) => (acc < 0 ? acc : currentFn(acc, args[index])), 0); // -1 trigger a stop for the pipe
     if (res < 0) return 0;
     return res >= maximumDeliveryFee ? maximumDeliveryFee : res;
   };
+
+const compose = (f: any, g: any) => (x: number, arg: any) => g(x, f(arg));
 
 const calculateSurchargeFromCartValue = memoize((cartValue: number) =>
   cartValue >= 100 ? -1 : cartValue < baseCartValue ? baseCartValue - cartValue : 0
@@ -45,7 +48,15 @@ const calculateDistanceFee = memoize((distance: number) => {
         Math.ceil((distance - initialDistance) / additionalDistanceBase) * additionalDistanceCharge;
 });
 
-const calculateMultiplier = (day: typeof daysOfWeek[number], hour: number, promotionDate: PromotionTime[]) => {
+const calculateMultiplier = ({
+  day,
+  hour,
+  promotionDate,
+}: {
+  day: typeof daysOfWeek[number];
+  hour: number;
+  promotionDate: PromotionTime[];
+}) => {
   const promotions = promotionDate.filter(
     ({ day: promotionDay, timePeriod }) =>
       day === promotionDay && timePeriod.some((period) => hour >= period[0] && hour <= period[1])
@@ -57,9 +68,10 @@ const calculateMultiplier = (day: typeof daysOfWeek[number], hour: number, promo
 };
 
 const calculateDeliveryFee = pipe(
-  calculateSurchargeFromCartValue,
-  calculateDistanceFee,
-  calculateSurchargeFromNumberOfItems
+  compose(calculateSurchargeFromCartValue, add),
+  compose(calculateDistanceFee, add),
+  compose(calculateSurchargeFromNumberOfItems, add),
+  compose(calculateMultiplier, multiply)
 );
 
 export {
