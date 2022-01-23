@@ -9,6 +9,18 @@ import {
 } from '../utils/calculateFn';
 
 describe('Test functions calculating Delivery Fee', () => {
+  const promotionDate: PromotionTime[] = [
+    {
+      day: 'Friday',
+      timePeriod: [[15, 21]],
+      multiplier: 1.1,
+      name: 'Friday rush',
+    },
+  ];
+
+  const timeInput = { day: 'Sunday', hour: 10, promotionDate };
+  const timeInputPromotion = { day: 'Friday', hour: 15, promotionDate };
+
   test('Surcharge from cartValue should return 0 if the value is above baseCartValue, or the remaining from baseCartValue and cartValue', () => {
     expect(calculateSurchargeFromCartValue(9)).toBe(1);
     expect(calculateSurchargeFromCartValue(10)).toBe(0);
@@ -28,24 +40,15 @@ describe('Test functions calculating Delivery Fee', () => {
   });
 
   test('It should return the multiplier of the surcharge when deliver during specific time', () => {
-    const promotionDate: PromotionTime[] = [
-      {
-        day: 'Friday',
-        timePeriod: [[15, 21]],
-        multiplier: 1.1,
-        name: 'Friday rush',
-      },
-    ];
-
-    expect(calculateMultiplier('Sunday', 10, promotionDate)).toBe(1);
-    expect(calculateMultiplier('Friday', 22, promotionDate)).toBe(1);
-    expect(calculateMultiplier('Friday', 15, promotionDate)).toBe(1.1);
+    expect(calculateMultiplier(timeInput)).toBe(1);
+    expect(calculateMultiplier({ day: 'Friday', hour: 22, promotionDate })).toBe(1);
+    expect(calculateMultiplier(timeInputPromotion)).toBe(1.1);
   });
 
   test(`It should calculate delivery fee with maximum value does not exceed ${maximumDeliveryFee}, delivery fee will be 0 with cartValue equal or greater than 100`, () => {
     const input = { cartValue: 9, deliveryDistance: 1000, amountOfItems: 1 };
-    expect(calculateDeliveryFee(input.cartValue, input.deliveryDistance, input.amountOfItems)).toBe(3);
-    expect(calculateDeliveryFee(12, 15001, 1)).toBe(15);
-    expect(calculateDeliveryFee(100, 15001, 1)).toBe(0);
+    expect(calculateDeliveryFee(input.cartValue, input.deliveryDistance, input.amountOfItems, timeInput)).toBe(3);
+    expect(calculateDeliveryFee(12, 15001, 1, timeInputPromotion)).toBe(15);
+    expect(calculateDeliveryFee(100, 15001, 1, timeInputPromotion)).toBe(0);
   });
 });
