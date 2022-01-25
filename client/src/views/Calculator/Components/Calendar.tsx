@@ -15,8 +15,18 @@ import {
 } from '@material-ui/core';
 import { v4 } from 'uuid';
 
-import { daysOfWeek, daysOfWeekLong, getDates, getNextMonth, getPreviousMonth, monthLong, today } from '../utils/date';
-import { useCalendarStyles } from '../../../styles/calendarStyles';
+import {
+  daysOfWeek,
+  daysOfWeekLong,
+  getDates,
+  getNextMonth,
+  getPreviousMonth,
+  isPreviousDate,
+  isToday,
+  monthLong,
+  today,
+} from '../utils/date';
+import { useCalendarStyles } from '../styles/calendarStyles';
 import { DayInWeek } from '../../../commonTypes';
 
 interface CalendarProps {
@@ -51,7 +61,10 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
         </Grid>
         <Grid item xs>
           <ButtonGroup>
-            <Button disabled={dates.currentMonth === month} onClick={handlePreviousMonth}>{`<`}</Button>
+            <Button
+              disabled={dates.currentMonth === month && dates.currentYear === year}
+              onClick={handlePreviousMonth}
+            >{`<`}</Button>
             <Button onClick={handleNextMonth}>{`>`}</Button>
           </ButtonGroup>
         </Grid>
@@ -68,22 +81,24 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
           </TableRow>
         </TableHead>
         <TableBody>
-          {dates.dates.map((row) => (
+          {dates.datesOfCurrentMonth.map((row, rowIndex) => (
             <TableRow key={v4()}>
-              {row.map((date, index) => (
+              {row.map((date, column) => (
                 <TableCell
                   key={v4()}
                   component="th"
                   scope="row"
                   align="center"
                   className={
-                    date === today.date && dates.currentMonth === today.month && dates.currentYear === today.year
-                      ? `${todayStyle} ${dateStyle}`
-                      : dateStyle
+                    isToday(date, dates.currentMonth, dates.currentYear) ? `${todayStyle} ${dateStyle}` : dateStyle
                   }
-                  onClick={() => handleSelectDate(date, daysOfWeekLong[index], dates.currentMonth)}
                 >
-                  {date === today.date && dates.currentMonth === today.month ? <b>{date}</b> : date}
+                  <Button
+                    onClick={() => handleSelectDate(date, daysOfWeekLong[column], dates.currentMonth)}
+                    disabled={isPreviousDate(dates, rowIndex, column, date)}
+                  >
+                    {date === today.date && dates.currentMonth === today.month ? <b>{date}</b> : date}
+                  </Button>
                 </TableCell>
               ))}
             </TableRow>

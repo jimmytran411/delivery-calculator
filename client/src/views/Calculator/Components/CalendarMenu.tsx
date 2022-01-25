@@ -1,8 +1,14 @@
 import React from 'react';
 import { Menu, Button } from '@material-ui/core';
-import { Calendar } from './Calendar';
 
-export function CalendarMenu({ handleSelectDate }: any) {
+import { Calendar } from './Calendar';
+import { DayInWeek } from '../../../commonTypes';
+
+interface CalendarMenuProps {
+  handleSelectDate: (date: number, day: DayInWeek, month: number) => void;
+}
+
+export function CalendarMenu({ handleSelectDate }: CalendarMenuProps) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {

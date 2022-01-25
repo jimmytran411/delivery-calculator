@@ -3,7 +3,7 @@ import { Button, FormControl, Grid, InputAdornment, InputLabel, OutlinedInput } 
 import _ from 'lodash';
 
 import { InputField } from './Components/InputField';
-import { useFormStyles } from '../../styles/formStyles';
+import { useFormStyles } from './styles/formStyles';
 import { calculateDeliveryFee, checkDeliveryFee, checkPromotion, promotionDate } from './utils/calculateFn';
 import { daysOfWeekLong, monthLong, today } from './utils/date';
 import { CalendarMenu } from './Components/CalendarMenu';

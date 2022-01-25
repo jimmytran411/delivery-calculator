@@ -1,10 +1,10 @@
 import { chunk } from 'lodash';
 import { DayInWeek } from '../../../commonTypes';
 
-interface CurrentDate {
+interface CurrentCalendarMonth {
   currentMonth: number;
   currentYear: number;
-  dates: number[][];
+  datesOfCurrentMonth: number[][];
 }
 
 // assumming working hours from 10:00 to 2:00 of next day
@@ -57,81 +57,92 @@ const getLastDateInMonth = (month: number, year: number) => {
 };
 
 // Fill the 6 (or 5) x 7 array (Calendar with 6 (or 5) rows and 7 columns)
-const getDatesOfMonth = (positionOfFirstDate: number, month: number, year: number): number[][] => {
+const getDatesOfMonth = (columnOfFirstDay: number, month: number, year: number): number[][] => {
   const lastDateOfLastMonth = getLastDateInMonth(month - 1, year);
   const lastDateOfThisMonth = getLastDateInMonth(month, year);
 
-  const numberOfRows = positionOfFirstDate + lastDateOfThisMonth > 35 ? 6 : 5;
+  const numberOfRows = columnOfFirstDay + lastDateOfThisMonth > 35 ? 6 : 5;
 
-  const d = Array.from({ length: numberOfRows * 7 - positionOfFirstDate }, (e, index) =>
+  const datesOfMonthFromFirstDay = Array.from({ length: numberOfRows * 7 - columnOfFirstDay }, (e, index) =>
     index + 1 > lastDateOfThisMonth ? index + 1 - lastDateOfThisMonth : index + 1
   );
   const datesBeforeFirstDay = Array.from(
-    { length: positionOfFirstDate },
-    (e, i) => i - positionOfFirstDate + 1 + lastDateOfLastMonth
+    { length: columnOfFirstDay },
+    (e, i) => i - columnOfFirstDay + 1 + lastDateOfLastMonth
   );
 
-  const dates = chunk([...datesBeforeFirstDay, ...d], 7);
-  return dates;
+  return chunk([...datesBeforeFirstDay, ...datesOfMonthFromFirstDay], 7);
 };
 
 const getNewDate = () => {
   const { day, date, month, year } = today;
 
-  let positionOfFirstDate = day - ((date - 1) % 7); // (today's column) - ((distance between today and the first day) % 7 to pass all the full row(s))
-  positionOfFirstDate = positionOfFirstDate > 0 ? positionOfFirstDate : 7 + positionOfFirstDate;
+  const columnOfFirstDay = day - ((date - 1) % 7); // (today's column) - ((distance between today and the first day) % 7 to pass all the full row(s))
 
   let current = {
     currentMonth: month,
     currentYear: year,
-    dates: getDatesOfMonth(positionOfFirstDate, month, year),
+    datesOfCurrentMonth: getDatesOfMonth(columnOfFirstDay > 0 ? columnOfFirstDay : 7 + columnOfFirstDay, month, year),
   };
 
-  return (f: any): CurrentDate => {
+  return (f: typeof getNextMonth | typeof getPreviousMonth): CurrentCalendarMonth => {
     current = f(current);
     return current;
   };
 };
 
-const getNextMonth = (current: CurrentDate): CurrentDate => {
-  const { currentYear, currentMonth, dates } = current;
+const getNextMonth = (current: CurrentCalendarMonth): CurrentCalendarMonth => {
+  const { currentYear, currentMonth, datesOfCurrentMonth } = current;
 
-  let nextMonth = currentMonth + 1;
+  const nextMonth = currentMonth + 1;
   const year = nextMonth > 12 ? currentYear + 1 : currentYear;
-  nextMonth = nextMonth > 12 ? nextMonth - 12 : nextMonth;
-  const positionOfFirstDate = dates[dates.length - 1].indexOf(1);
+  const columnOfFirstDay = datesOfCurrentMonth[datesOfCurrentMonth.length - 1].indexOf(1);
 
   return {
     ...current,
-    currentMonth: nextMonth,
+    currentMonth: nextMonth > 12 ? nextMonth - 12 : nextMonth,
     currentYear: year,
-    dates: getDatesOfMonth(positionOfFirstDate >= 0 ? positionOfFirstDate : 0, nextMonth, year),
+    datesOfCurrentMonth: getDatesOfMonth(columnOfFirstDay >= 0 ? columnOfFirstDay : 0, nextMonth, year),
   };
 };
 
-const getPreviousMonth = (current: CurrentDate): CurrentDate => {
-  const { currentMonth, currentYear, dates } = current;
+const getPreviousMonth = (current: CurrentCalendarMonth): CurrentCalendarMonth => {
+  const { currentMonth, currentYear, datesOfCurrentMonth } = current;
 
-  let previousMonth = currentMonth - 1;
+  const previousMonth = currentMonth - 1;
   const year = previousMonth < 1 ? currentYear - 1 : currentYear;
-  previousMonth = previousMonth < 1 ? previousMonth + 12 : previousMonth;
 
   const lastDateOfLastMonth = getLastDateInMonth(previousMonth, year);
-  let positionOfLastDate = dates[0].indexOf(lastDateOfLastMonth);
+  let positionOfLastDate = datesOfCurrentMonth[0].indexOf(lastDateOfLastMonth);
   positionOfLastDate = positionOfLastDate < 0 ? 6 : positionOfLastDate;
 
-  let positionOfFirstDate = positionOfLastDate - ((lastDateOfLastMonth - 1) % 7);
-  positionOfFirstDate = positionOfFirstDate > 0 ? positionOfFirstDate : 7 + positionOfFirstDate;
+  let columnOfFirstDay = positionOfLastDate - ((lastDateOfLastMonth - 1) % 7);
+  columnOfFirstDay = columnOfFirstDay > 0 ? columnOfFirstDay : 7 + columnOfFirstDay;
 
   return {
     ...current,
-    currentMonth: previousMonth,
+    currentMonth: previousMonth < 1 ? previousMonth + 12 : previousMonth,
     currentYear: year,
-    dates: getDatesOfMonth(positionOfFirstDate, previousMonth, year),
+    datesOfCurrentMonth: getDatesOfMonth(columnOfFirstDay, previousMonth, year),
   };
 };
 
 const getDates = getNewDate();
+
+const isToday = (date: number, month: number, year: number) =>
+  date === today.date && month === today.month && year === today.year;
+
+const isPreviousDate = (currentDate: CurrentCalendarMonth, row: number, column: number, date: number) => {
+  const { currentMonth, currentYear, datesOfCurrentMonth } = currentDate;
+  if ((currentMonth > today.month && currentYear === today.year) || currentYear > today.year) return false;
+
+  const todayIndex = datesOfCurrentMonth.reduce((acc, currentRow) => [...acc, ...currentRow], []).indexOf(today.date);
+  const todayRow = Math.ceil(todayIndex / 7) - 1;
+
+  return (
+    row < todayRow || (today.date < 6 && row === 0 && column < today.day) || (row === todayRow && date < today.date)
+  );
+};
 
 export {
   deliveryHours,
@@ -143,4 +154,6 @@ export {
   getPreviousMonth,
   today,
   daysOfWeekLong,
+  isToday,
+  isPreviousDate,
 };

@@ -11,7 +11,12 @@ interface DeliveryHoursProps {
 export function DeliveryHours({ handleSelectTime }: DeliveryHoursProps) {
   const [hour, setHour] = React.useState('');
 
-  const handleChange = (event: any) => {
+  const handleChange = (
+    event: React.ChangeEvent<{
+      name?: string | undefined;
+      value: any;
+    }>
+  ) => {
     setHour(event.target.value);
     handleSelectTime(event.target.value);
   };
