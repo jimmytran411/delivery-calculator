@@ -1,6 +1,5 @@
-import { memoize } from 'lodash';
-import { PromotionTime } from '../../../commonTypes';
-import { daysOfWeek } from './date';
+import { add, memoize, MemoizedFunction } from 'lodash';
+import { DayInWeek, PromotionTime } from '../../../commonTypes';
 
 const baseCartValue = 10;
 const baseDistanceValue = {
@@ -19,17 +18,30 @@ const promotionDate: PromotionTime[] = [
 ];
 const maximumDeliveryFee = 15;
 
-const add = (x: number, y: number) => x + y;
-const multiply = (x: number, y: number) => x * y;
-const pipe =
-  (...fns: any[]) =>
-  (...args: any[]) => {
-    const res = fns.reduce((acc, currentFn, index) => (acc < 0 ? acc : currentFn(acc, args[index])), 0); // -1 trigger a stop for the pipe
-    if (res < 0) return 0;
-    return res >= maximumDeliveryFee ? maximumDeliveryFee : res;
-  };
+export type CheckPromotionArg = {
+  day: DayInWeek;
+  hour: number;
+  promotionDate: PromotionTime[];
+};
+type CalculateFn<T> = ((arg: T) => number) & MemoizedFunction;
+type OperatorFn = (...arg: number[]) => number;
 
-const compose = (f: any, g: any) => (x: number, arg: any) => g(x, f(arg));
+const pipe =
+  <T>(...fns: ComposeReturn<T>[]) =>
+  (...args: T[]): number =>
+    checkDeliveryFee(fns.reduce((acc, currentFn, index) => (acc < 0 ? acc : currentFn(acc, args[index])), 0)); // -1 trigger a stop for the pipe
+
+type ComposeReturn<T> = (x: number, arg: T) => number;
+
+const compose =
+  <T>(calculateFn: CalculateFn<T>, operator: OperatorFn) =>
+  (x: number, arg: T): number =>
+    operator(x, calculateFn(arg));
+
+const checkDeliveryFee = (fee: number): number => {
+  if (fee < 0) return 0;
+  return fee > maximumDeliveryFee ? maximumDeliveryFee : fee;
+};
 
 const calculateSurchargeFromCartValue = memoize((cartValue: number) =>
   cartValue >= 100 ? -1 : cartValue < baseCartValue ? baseCartValue - cartValue : 0
@@ -48,38 +60,30 @@ const calculateDistanceFee = memoize((distance: number) => {
         Math.ceil((distance - initialDistance) / additionalDistanceBase) * additionalDistanceCharge;
 });
 
-const calculateMultiplier = ({
-  day,
-  hour,
-  promotionDate,
-}: {
-  day: typeof daysOfWeek[number];
-  hour: number;
-  promotionDate: PromotionTime[];
-}) => {
+const checkPromotion = memoize(({ day, hour, promotionDate }: CheckPromotionArg) => {
   const promotions = promotionDate.filter(
     ({ day: promotionDay, timePeriod }) =>
-      day === promotionDay && timePeriod.some((period) => hour >= period[0] && hour <= period[1])
+      day === promotionDay && timePeriod.some(([start, end]) => hour >= start && hour <= end)
   );
   if (promotions.length > 1) {
     // do something in case two or more promotion time overlap
   }
   return promotions.length ? promotions[0].multiplier : 1;
-};
+});
 
 const calculateDeliveryFee = pipe(
   compose(calculateSurchargeFromCartValue, add),
   compose(calculateDistanceFee, add),
-  compose(calculateSurchargeFromNumberOfItems, add),
-  compose(calculateMultiplier, multiply)
+  compose(calculateSurchargeFromNumberOfItems, add)
 );
 
 export {
   maximumDeliveryFee,
-  calculateMultiplier,
+  checkPromotion,
   calculateDeliveryFee,
   calculateSurchargeFromCartValue,
   calculateDistanceFee,
   calculateSurchargeFromNumberOfItems,
   promotionDate,
+  checkDeliveryFee,
 };

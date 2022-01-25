@@ -14,7 +14,7 @@ test('It should display inputfield component, user should be able to type into t
   expect(handleInput).toHaveBeenCalled();
   expect(field).toHaveValue('12.5');
 
-  rerender(<InputField name="test field" error="test error" handleInput={handleInput} />);
+  rerender(<InputField label="test field" name="test field" error="test error" handleInput={handleInput} />);
   const error = getByText(/test error/i);
   expect(error).toBeInTheDocument();
 });

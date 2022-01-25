@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import { InputField } from './Components/InputField';
 import { useFormStyles } from '../../styles/formStyles';
-import { calculateDeliveryFee, promotionDate } from './utils/calculateFn';
+import { calculateDeliveryFee, checkDeliveryFee, checkPromotion, promotionDate } from './utils/calculateFn';
 import { daysOfWeekLong, monthLong, today } from './utils/date';
 import { CalendarMenu } from './Components/CalendarMenu';
 import { DeliveryHours } from './Components/DeliveryHours';
@@ -31,10 +31,9 @@ export const Calculator = () => {
     e.preventDefault();
 
     const { cartValue, deliveryDistance, amountOfItems, day } = inputFields;
+    const multiplier = checkPromotion({ day: day.day, hour: day.hour, promotionDate });
 
-    setDeliveryPrice(
-      calculateDeliveryFee(cartValue, deliveryDistance, amountOfItems, { day: day.day, hour: day.hour, promotionDate })
-    );
+    setDeliveryPrice(checkDeliveryFee(calculateDeliveryFee(cartValue, deliveryDistance, amountOfItems) * multiplier));
   };
 
   const handleInput = useCallback(
