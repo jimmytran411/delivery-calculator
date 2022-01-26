@@ -2,10 +2,9 @@ import React from 'react';
 import { Menu, Button } from '@material-ui/core';
 
 import { Calendar } from './Calendar';
-import { DayInWeek } from '../../../commonTypes';
 
 interface CalendarMenuProps {
-  handleSelectDate: (date: number, day: DayInWeek, month: number) => void;
+  handleSelectDate: (fullDate: Date) => void;
 }
 
 export function CalendarMenu({ handleSelectDate }: CalendarMenuProps) {
