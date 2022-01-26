@@ -61,8 +61,7 @@ const getDatesOfMonth = (firstDateOfCalendar: Date): DateOfMonth[][] => {
   );
 };
 
-const getNewDate = () => {
-  const { month, year } = today;
+const getNewDate = (month = today.month, year = today.year) => {
   const firstDateOfThisMonth = new Date(year, month, 1);
   let current = {
     currentMonth: month,
@@ -105,4 +104,15 @@ const getPreviousMonth = (current: CurrentCalendarMonth): CurrentCalendarMonth =
 
 const getDates = getNewDate();
 
-export { deliveryHours, monthLong, daysOfWeek, getDates, getNextMonth, getPreviousMonth, today, daysOfWeekLong };
+export {
+  deliveryHours,
+  monthLong,
+  daysOfWeek,
+  getDates,
+  getNextMonth,
+  getPreviousMonth,
+  today,
+  daysOfWeekLong,
+  getDatesOfMonth,
+  getNewDate,
+};
