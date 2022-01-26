@@ -4,8 +4,9 @@ import {
   calculateDistanceFee,
   calculateSurchargeFromNumberOfItems,
   calculateDeliveryFee,
-  calculateMultiplier,
+  checkPromotion,
   maximumDeliveryFee,
+  CheckPromotionArg,
 } from '../utils/calculateFn';
 
 describe('Test functions calculating Delivery Fee', () => {
@@ -18,8 +19,8 @@ describe('Test functions calculating Delivery Fee', () => {
     },
   ];
 
-  const timeInput = { day: 'Sunday', hour: 10, promotionDate };
-  const timeInputPromotion = { day: 'Friday', hour: 15, promotionDate };
+  const timeInput: CheckPromotionArg = { day: 'Sunday', hour: 10, promotionDate };
+  const timeInputPromotion: CheckPromotionArg = { day: 'Friday', hour: 15, promotionDate };
 
   test('Surcharge from cartValue should return 0 if the value is above baseCartValue, or the remaining from baseCartValue and cartValue', () => {
     expect(calculateSurchargeFromCartValue(9)).toBe(1);
@@ -40,15 +41,15 @@ describe('Test functions calculating Delivery Fee', () => {
   });
 
   test('It should return the multiplier of the surcharge when deliver during specific time', () => {
-    expect(calculateMultiplier(timeInput)).toBe(1);
-    expect(calculateMultiplier({ day: 'Friday', hour: 22, promotionDate })).toBe(1);
-    expect(calculateMultiplier(timeInputPromotion)).toBe(1.1);
+    expect(checkPromotion(timeInput)).toBe(1);
+    expect(checkPromotion({ day: 'Friday', hour: 22, promotionDate })).toBe(1);
+    expect(checkPromotion(timeInputPromotion)).toBe(1.1);
   });
 
   test(`It should calculate delivery fee with maximum value does not exceed ${maximumDeliveryFee}, delivery fee will be 0 with cartValue equal or greater than 100`, () => {
     const input = { cartValue: 9, deliveryDistance: 1000, amountOfItems: 1 };
-    expect(calculateDeliveryFee(input.cartValue, input.deliveryDistance, input.amountOfItems, timeInput)).toBe(3);
-    expect(calculateDeliveryFee(12, 15001, 1, timeInputPromotion)).toBe(15);
-    expect(calculateDeliveryFee(100, 15001, 1, timeInputPromotion)).toBe(0);
+    expect(calculateDeliveryFee(input.cartValue, input.deliveryDistance, input.amountOfItems)).toBe(3);
+    expect(calculateDeliveryFee(12, 15001, 1)).toBe(15);
+    expect(calculateDeliveryFee(100, 15001, 1)).toBe(0);
   });
 });

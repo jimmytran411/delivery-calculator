@@ -14,13 +14,13 @@ import {
   Divider,
 } from '@material-ui/core';
 import { v4 } from 'uuid';
+import { isPast, isThisMonth, isToday } from 'date-fns';
 
 import { daysOfWeek, daysOfWeekLong, getDates, getNextMonth, getPreviousMonth, monthLong, today } from '../utils/date';
-import { useCalendarStyles } from '../../../styles/calendarStyles';
-import { DayInWeek } from '../../../commonTypes';
+import { useCalendarStyles } from '../styles/calendarStyles';
 
 interface CalendarProps {
-  handleSelectDate: (date: number, day: DayInWeek, month: number) => void;
+  handleSelectDate: (fullDate: Date) => void;
 }
 
 export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelectDate }, ref) => {
@@ -41,17 +41,20 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
 
   return (
     <TableContainer component={Paper} innerRef={ref}>
-      <div>{`${daysOfWeekLong[day]}, ${date} ${monthLong[month - 1]} ${year}`}</div>
+      <div>{`${daysOfWeekLong[day]}, ${date} ${monthLong[month]} ${year}`}</div>
       <Divider />
       <Grid container justifyContent="space-between">
         <Grid item xs>
           <div>
-            {monthLong[dates.currentMonth - 1]} {dates.currentYear}
+            {monthLong[dates.currentMonth]} {dates.currentYear}
           </div>
         </Grid>
         <Grid item xs>
           <ButtonGroup>
-            <Button disabled={dates.currentMonth === month} onClick={handlePreviousMonth}>{`<`}</Button>
+            <Button
+              disabled={isThisMonth(new Date(dates.currentYear, dates.currentMonth))}
+              onClick={handlePreviousMonth}
+            >{`<`}</Button>
             <Button onClick={handleNextMonth}>{`>`}</Button>
           </ButtonGroup>
         </Grid>
@@ -68,22 +71,22 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
           </TableRow>
         </TableHead>
         <TableBody>
-          {dates.dates.map((row) => (
+          {dates.datesOfCurrentMonth.map((row) => (
             <TableRow key={v4()}>
-              {row.map((date, index) => (
+              {row.map(({ date, fullDate }) => (
                 <TableCell
                   key={v4()}
                   component="th"
                   scope="row"
                   align="center"
-                  className={
-                    date === today.date && dates.currentMonth === today.month && dates.currentYear === today.year
-                      ? `${todayStyle} ${dateStyle}`
-                      : dateStyle
-                  }
-                  onClick={() => handleSelectDate(date, daysOfWeekLong[index], dates.currentMonth)}
+                  className={isToday(fullDate) ? `${todayStyle} ${dateStyle}` : dateStyle}
                 >
-                  {date === today.date && dates.currentMonth === today.month ? <b>{date}</b> : date}
+                  <Button
+                    onClick={() => handleSelectDate(fullDate)}
+                    disabled={isToday(fullDate) ? false : isPast(fullDate)}
+                  >
+                    {date}
+                  </Button>
                 </TableCell>
               ))}
             </TableRow>

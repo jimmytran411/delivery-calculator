@@ -1,10 +1,13 @@
+import { addDays, differenceInDays, getDay, lastDayOfMonth, subDays } from 'date-fns';
 import { chunk } from 'lodash';
+
 import { DayInWeek } from '../../../commonTypes';
 
-interface CurrentDate {
+type DateOfMonth = { date: number; fullDate: Date };
+interface CurrentCalendarMonth {
   currentMonth: number;
   currentYear: number;
-  dates: number[][];
+  datesOfCurrentMonth: DateOfMonth[][];
 }
 
 // assumming working hours from 10:00 to 2:00 of next day
@@ -30,117 +33,76 @@ const monthLong = [
   'November',
   'December',
 ];
-const monthShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
 
 const currentDay = new Date();
 const today = {
   date: currentDay.getDate(),
-  month: currentDay.getMonth() + 1,
+  month: currentDay.getMonth(),
   year: currentDay.getFullYear(),
   day: currentDay.getDay(),
   hour: currentDay.getHours(),
 };
 
-const isLeapYear = (year: number) => year % 4 === 0;
-const monthWith31Days = [1, 3, 5, 7, 8, 10, 12];
-
-const getLastDateInMonth = (month: number, year: number) => {
-  month < 1 && (month += 12) && year--;
-  month > 12 && (month -= 12) && year++;
-  if (monthWith31Days.includes(month)) {
-    return 31;
-  }
-  if (month === 2) {
-    return isLeapYear(year) ? 29 : 28;
-  }
-  return 30;
-};
-
 // Fill the 6 (or 5) x 7 array (Calendar with 6 (or 5) rows and 7 columns)
-const getDatesOfMonth = (positionOfFirstDate: number, month: number, year: number): number[][] => {
-  const lastDateOfLastMonth = getLastDateInMonth(month - 1, year);
-  const lastDateOfThisMonth = getLastDateInMonth(month, year);
+const getDatesOfMonth = (firstDateOfCalendar: Date): DateOfMonth[][] => {
+  const lastDateOfThisMonth = lastDayOfMonth(addDays(firstDateOfCalendar, 7));
 
-  const numberOfRows = positionOfFirstDate + lastDateOfThisMonth > 35 ? 6 : 5;
+  const numberOfRows = differenceInDays(lastDateOfThisMonth, firstDateOfCalendar) > 35 ? 6 : 5;
+  return chunk(
+    Array.from({ length: numberOfRows * 7 }, (_e, i) => {
+      const fullDate = addDays(firstDateOfCalendar, i);
 
-  const d = Array.from({ length: numberOfRows * 7 - positionOfFirstDate }, (e, index) =>
-    index + 1 > lastDateOfThisMonth ? index + 1 - lastDateOfThisMonth : index + 1
+      return {
+        date: fullDate.getDate(),
+        fullDate,
+      };
+    }),
+    7
   );
-  const datesBeforeFirstDay = Array.from(
-    { length: positionOfFirstDate },
-    (e, i) => i - positionOfFirstDate + 1 + lastDateOfLastMonth
-  );
-
-  const dates = chunk([...datesBeforeFirstDay, ...d], 7);
-  return dates;
 };
 
 const getNewDate = () => {
-  const { day, date, month, year } = today;
-
-  let positionOfFirstDate = day - ((date - 1) % 7); // (today's column) - ((distance between today and the first day) % 7 to pass all the full row(s))
-  positionOfFirstDate = positionOfFirstDate > 0 ? positionOfFirstDate : 7 + positionOfFirstDate;
-
+  const { month, year } = today;
+  const firstDateOfThisMonth = new Date(year, month, 1);
   let current = {
     currentMonth: month,
     currentYear: year,
-    dates: getDatesOfMonth(positionOfFirstDate, month, year),
+    datesOfCurrentMonth: getDatesOfMonth(subDays(firstDateOfThisMonth, getDay(firstDateOfThisMonth))),
   };
 
-  return (f: any): CurrentDate => {
+  return (f: typeof getNextMonth | typeof getPreviousMonth): CurrentCalendarMonth => {
     current = f(current);
     return current;
   };
 };
 
-const getNextMonth = (current: CurrentDate): CurrentDate => {
-  const { currentYear, currentMonth, dates } = current;
-
-  let nextMonth = currentMonth + 1;
-  const year = nextMonth > 12 ? currentYear + 1 : currentYear;
-  nextMonth = nextMonth > 12 ? nextMonth - 12 : nextMonth;
-  const positionOfFirstDate = dates[dates.length - 1].indexOf(1);
+const getNextMonth = (current: CurrentCalendarMonth): CurrentCalendarMonth => {
+  const { currentYear, currentMonth, datesOfCurrentMonth } = current;
+  const nextMonth = currentMonth + 1;
 
   return {
     ...current,
-    currentMonth: nextMonth,
-    currentYear: year,
-    dates: getDatesOfMonth(positionOfFirstDate >= 0 ? positionOfFirstDate : 0, nextMonth, year),
+    currentMonth: nextMonth > 11 ? 0 : nextMonth,
+    currentYear: nextMonth > 11 ? currentYear + 1 : currentYear,
+    datesOfCurrentMonth: getDatesOfMonth(datesOfCurrentMonth[datesOfCurrentMonth.length - 1][0].fullDate),
   };
 };
 
-const getPreviousMonth = (current: CurrentDate): CurrentDate => {
-  const { currentMonth, currentYear, dates } = current;
+const getPreviousMonth = (current: CurrentCalendarMonth): CurrentCalendarMonth => {
+  const { currentMonth, currentYear } = current;
 
-  let previousMonth = currentMonth - 1;
-  const year = previousMonth < 1 ? currentYear - 1 : currentYear;
-  previousMonth = previousMonth < 1 ? previousMonth + 12 : previousMonth;
-
-  const lastDateOfLastMonth = getLastDateInMonth(previousMonth, year);
-  let positionOfLastDate = dates[0].indexOf(lastDateOfLastMonth);
-  positionOfLastDate = positionOfLastDate < 0 ? 6 : positionOfLastDate;
-
-  let positionOfFirstDate = positionOfLastDate - ((lastDateOfLastMonth - 1) % 7);
-  positionOfFirstDate = positionOfFirstDate > 0 ? positionOfFirstDate : 7 + positionOfFirstDate;
+  const previousMonth = currentMonth - 1;
+  const previousYear = previousMonth < 0 ? currentYear - 1 : currentYear;
+  const firstDateOfPreviousMonth = new Date(previousYear, previousMonth, 1);
 
   return {
     ...current,
-    currentMonth: previousMonth,
-    currentYear: year,
-    dates: getDatesOfMonth(positionOfFirstDate, previousMonth, year),
+    currentMonth: previousMonth < 0 ? 11 : previousMonth,
+    currentYear: previousMonth < 0 ? currentYear - 1 : currentYear,
+    datesOfCurrentMonth: getDatesOfMonth(subDays(firstDateOfPreviousMonth, getDay(firstDateOfPreviousMonth))),
   };
 };
 
 const getDates = getNewDate();
 
-export {
-  deliveryHours,
-  monthLong,
-  monthShort,
-  daysOfWeek,
-  getDates,
-  getNextMonth,
-  getPreviousMonth,
-  today,
-  daysOfWeekLong,
-};
+export { deliveryHours, monthLong, daysOfWeek, getDates, getNextMonth, getPreviousMonth, today, daysOfWeekLong };

@@ -3,24 +3,20 @@ import { Button, FormControl, Grid, InputAdornment, InputLabel, OutlinedInput } 
 import _ from 'lodash';
 
 import { InputField } from './Components/InputField';
-import { useFormStyles } from '../../styles/formStyles';
-import { calculateDeliveryFee, promotionDate } from './utils/calculateFn';
-import { daysOfWeekLong, monthLong, today } from './utils/date';
+import { useFormStyles } from './styles/formStyles';
+import { calculateDeliveryFee, checkDeliveryFee, checkPromotion, promotionDate } from './utils/calculateFn';
+import { daysOfWeekLong, today } from './utils/date';
 import { CalendarMenu } from './Components/CalendarMenu';
 import { DeliveryHours } from './Components/DeliveryHours';
-import { DayInWeek } from '../../commonTypes';
+import { format } from 'date-fns';
 
 export const Calculator = () => {
   const [inputFields, setInputFields] = useState({
     cartValue: 0,
     deliveryDistance: 0,
     amountOfItems: 1,
-    day: {
-      date: today.date,
-      day: daysOfWeekLong[today.day],
-      month: today.month,
-      hour: today.hour,
-    },
+    fullDate: new Date(),
+    hour: new Date().getHours(),
   });
   const [errors, setErrors] = useState({ cartValue: '', deliveryDistance: '', amountOfItems: '' });
   const [deliveryPrice, setDeliveryPrice] = useState(0);
@@ -30,10 +26,11 @@ export const Calculator = () => {
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
 
-    const { cartValue, deliveryDistance, amountOfItems, day } = inputFields;
+    const { cartValue, deliveryDistance, amountOfItems, fullDate, hour } = inputFields;
+    const multiplier = checkPromotion({ day: daysOfWeekLong[fullDate.getDay()], hour, promotionDate });
 
     setDeliveryPrice(
-      calculateDeliveryFee(cartValue, deliveryDistance, amountOfItems, { day: day.day, hour: day.hour, promotionDate })
+      +checkDeliveryFee(calculateDeliveryFee(cartValue, deliveryDistance, amountOfItems) * multiplier).toFixed(2)
     );
   };
 
@@ -49,16 +46,15 @@ export const Calculator = () => {
     []
   );
 
-  const handleSelectDate = (date: number, day: DayInWeek, month: number) => {
-    setInputFields((prev) => ({ ...prev, day: { ...prev.day, date, day, month } }));
+  const handleSelectDate = (fullDate: Date) => {
+    setInputFields((prev) => ({ ...prev, fullDate }));
   };
 
   const handleSelectTime = (time: string) => {
     time === 'now'
-      ? setInputFields((prev) => ({ ...prev, day: { ...prev.day, hour: today.hour } }))
-      : setInputFields((prev) => ({ ...prev, day: { ...prev.day, hour: +time.split(':')[0] } }));
+      ? setInputFields((prev) => ({ ...prev, hour: today.hour }))
+      : setInputFields((prev) => ({ ...prev, hour: +time.split(':')[0] }));
   };
-
   return (
     <Grid container>
       <Grid item xs>
@@ -95,7 +91,7 @@ export const Calculator = () => {
                   <CalendarMenu handleSelectDate={handleSelectDate} />
                 </InputAdornment>
               }
-              value={`${inputFields.day.day} ${inputFields.day.date} ${monthLong[inputFields.day.month - 1]}`}
+              value={format(inputFields.fullDate, '	PPPP').replace(/^\s+|\s+$/g, '')}
             />
           </FormControl>
 

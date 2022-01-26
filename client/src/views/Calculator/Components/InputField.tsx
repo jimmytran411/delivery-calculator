@@ -6,11 +6,11 @@ interface InputFieldProps {
   name: string;
   label: string;
   error: string;
-  handleInput: (input: string) => any;
+  handleInput: (input: string) => void;
 }
 
 export const InputField: React.FC<InputFieldProps> = ({ name, error, label, handleInput }) => {
-  const handleDebounceOnChange = (e: any) => {
+  const handleDebounceOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleInput(e.target.value);
   };
   return (
