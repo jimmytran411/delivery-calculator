@@ -26,7 +26,7 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
   const datesOfCurrentMonth = useMemo(() => getDates(identity), [getDates]);
   const [dates, setDates] = useState(datesOfCurrentMonth);
 
-  const { root, row, todayStyle, dateStyle } = useCalendarStyles();
+  const { todayStyle, dateStyle } = useCalendarStyles();
   const { day, date, month, year } = today;
 
   const handlePreviousMonth = () => {
@@ -39,7 +39,7 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
   };
 
   return (
-    <TableContainer innerRef={ref} className={root}>
+    <TableContainer innerRef={ref}>
       <div>{`${daysOfWeekLong[day]}, ${date} ${monthLong[month]} ${year}`}</div>
       <Divider />
       <Grid container justifyContent="space-between">

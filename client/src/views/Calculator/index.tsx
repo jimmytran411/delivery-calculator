@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { FormControl, Grid, InputAdornment, InputLabel, OutlinedInput, ThemeProvider } from '@material-ui/core';
+import { FormControl, Grid, InputAdornment, InputLabel, OutlinedInput } from '@material-ui/core';
 import _ from 'lodash';
 import { format } from 'date-fns';
 
@@ -7,7 +7,6 @@ import { InputField } from './Components/InputField';
 import { useFormStyles } from './styles/formStyles';
 import { CalendarMenu } from './Components/CalendarMenu';
 import { TimeSelect } from './Components/TimeSelect';
-import { theme } from './styles/calendarStyles';
 import { ResultSumary } from './Components/ResultSumary';
 import { useFormValidation } from './customHooks/useFormValidation';
 import { useCalculateFee } from './customHooks/useCalculateFee';
@@ -33,7 +32,7 @@ export const Calculator = () => {
 
   const { errors, validateField, isEmptyError } = useFormValidation();
   const { result, calculateFee } = useCalculateFee();
-  const { root, formTitle, left, form, inputField, submitBtn } = useFormStyles();
+  const { root, formTitle, form, submitBtn } = useFormStyles();
 
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -68,33 +67,30 @@ export const Calculator = () => {
 
   return (
     <Grid container className={root}>
-      <Grid item xs className={left}>
+      <Grid item xs>
         <form onSubmit={handleSubmit} className={form}>
           <span className={formTitle}>Delivery Calculator</span>
 
           <InputField
-            className={inputField}
             label="cart value"
             name="cartValue"
             error={errors.cartValue}
             handleInput={(input) => handleInput(input, 'cartValue')}
           />
           <InputField
-            className={inputField}
             label="delivery distance"
             name="deliverDistance"
             error={errors.deliveryDistance}
             handleInput={(input) => handleInput(input, 'deliveryDistance')}
           />
           <InputField
-            className={inputField}
             label="items amount"
             name="amountOfItems"
             error={errors.amountOfItems}
             handleInput={(input) => handleInput(input, 'amountOfItems')}
           />
 
-          <FormControl className={inputField} variant="outlined">
+          <FormControl variant="outlined">
             <InputLabel htmlFor="date">{_.capitalize('delivery date')}</InputLabel>
             <OutlinedInput
               id="date"
@@ -102,9 +98,7 @@ export const Calculator = () => {
               label="date"
               endAdornment={
                 <InputAdornment position="end">
-                  <ThemeProvider theme={theme}>
-                    <CalendarMenu handleSelectDate={handleSelectDate} />
-                  </ThemeProvider>
+                  <CalendarMenu handleSelectDate={handleSelectDate} />
                 </InputAdornment>
               }
               value={format(inputFields.fullDate, 'PPP')}
