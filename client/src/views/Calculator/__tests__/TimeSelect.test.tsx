@@ -10,6 +10,7 @@ test('It should display a list of time', () => {
     (e, i) => `${i + 10}:00 - ${i + 11}:00`
   );
   const { getByRole } = render(<TimeSelect handleSelectTime={jest.fn()} listOfHours={deliveryHours} />);
+
   userEvent.click(getByRole('button'));
 
   const listbox = within(getByRole('listbox'));

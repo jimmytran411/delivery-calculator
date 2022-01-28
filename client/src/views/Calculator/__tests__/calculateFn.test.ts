@@ -3,9 +3,7 @@ import {
   calculateSurchargeFromCartValue,
   calculateDistanceFee,
   calculateSurchargeFromNumberOfItems,
-  calculateDeliveryFee,
   checkPromotion,
-  maximumDeliveryFee,
   CheckPromotionArg,
 } from '../utils/calculateFn';
 
@@ -44,12 +42,5 @@ describe('Test functions calculating Delivery Fee', () => {
     expect(checkPromotion(timeInput)).toBe(1);
     expect(checkPromotion({ day: 'Friday', hour: 22, promotionDate })).toBe(1);
     expect(checkPromotion(timeInputPromotion)).toBe(1.1);
-  });
-
-  test(`It should calculate delivery fee with maximum value does not exceed ${maximumDeliveryFee}, delivery fee will be 0 with cartValue equal or greater than 100`, () => {
-    const input = { cartValue: 9, deliveryDistance: 1000, amountOfItems: 1 };
-    expect(calculateDeliveryFee(input.cartValue, input.deliveryDistance, input.amountOfItems)).toBe(3);
-    expect(calculateDeliveryFee(12, 15001, 1)).toBe(15);
-    expect(calculateDeliveryFee(100, 15001, 1)).toBe(0);
   });
 });
