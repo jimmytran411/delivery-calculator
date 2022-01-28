@@ -1,14 +1,14 @@
 import React, { useCallback, useState } from 'react';
 import { Button, FormControl, Grid, InputAdornment, InputLabel, OutlinedInput } from '@material-ui/core';
 import _ from 'lodash';
+import { format } from 'date-fns';
 
 import { InputField } from './Components/InputField';
 import { useFormStyles } from './styles/formStyles';
 import { calculateDeliveryFee, checkDeliveryFee, checkPromotion, promotionDate } from './utils/calculateFn';
-import { daysOfWeekLong, today } from './utils/date';
+import { daysOfWeekLong, deliveryHours, today } from './utils/date';
 import { CalendarMenu } from './Components/CalendarMenu';
-import { DeliveryHours } from './Components/DeliveryHours';
-import { format } from 'date-fns';
+import { TimeSelect } from './Components/TimeSelect';
 
 export const Calculator = () => {
   const [inputFields, setInputFields] = useState({
@@ -95,7 +95,7 @@ export const Calculator = () => {
             />
           </FormControl>
 
-          <DeliveryHours handleSelectTime={handleSelectTime} />
+          <TimeSelect listOfHours={deliveryHours} handleSelectTime={handleSelectTime} />
 
           <Button className={submitBtn} variant="outlined" color="primary" type="submit">
             Calculate Delivery Price
