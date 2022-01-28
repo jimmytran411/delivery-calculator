@@ -1,4 +1,4 @@
-import { add, memoize, MemoizedFunction } from 'lodash';
+import { memoize } from 'lodash';
 import { DayInWeek, PromotionTime } from '../../../commonTypes';
 
 const baseCartValue = 10;
@@ -23,20 +23,13 @@ export type CheckPromotionArg = {
   hour: number;
   promotionDate: PromotionTime[];
 };
-type CalculateFn<T> = ((arg: T) => number) & MemoizedFunction;
-type OperatorFn = (...arg: number[]) => number;
 
-const pipe =
+const calculatePipe =
   <T>(...fns: ComposeReturn<T>[]) =>
   (...args: T[]): number =>
-    checkDeliveryFee(fns.reduce((acc, currentFn, index) => (acc < 0 ? acc : currentFn(acc, args[index])), 0)); // -1 trigger a stop for the pipe
+    fns.reduce((acc, currentFn, index) => (acc < 0 ? acc : currentFn(acc, args[index])), 0); // -1 trigger a stop for the pipe
 
 type ComposeReturn<T> = (x: number, arg: T) => number;
-
-const compose =
-  <T>(calculateFn: CalculateFn<T>, operator: OperatorFn) =>
-  (x: number, arg: T): number =>
-    operator(x, calculateFn(arg));
 
 const checkDeliveryFee = (fee: number): number => {
   if (fee < 0) return 0;
@@ -63,7 +56,7 @@ const calculateDistanceFee = memoize((distance: number) => {
 const checkPromotion = memoize(({ day, hour, promotionDate }: CheckPromotionArg) => {
   const promotions = promotionDate.filter(
     ({ day: promotionDay, timePeriod }) =>
-      day === promotionDay && timePeriod.some(([start, end]) => hour >= start && hour <= end)
+      day === promotionDay && timePeriod.some(([start, end]) => hour >= start && hour < end)
   );
   if (promotions.length > 1) {
     // do something in case two or more promotion time overlap
@@ -71,16 +64,10 @@ const checkPromotion = memoize(({ day, hour, promotionDate }: CheckPromotionArg)
   return promotions.length ? promotions[0].multiplier : 1;
 });
 
-const calculateDeliveryFee = pipe(
-  compose(calculateSurchargeFromCartValue, add),
-  compose(calculateDistanceFee, add),
-  compose(calculateSurchargeFromNumberOfItems, add)
-);
-
 export {
   maximumDeliveryFee,
   checkPromotion,
-  calculateDeliveryFee,
+  calculatePipe,
   calculateSurchargeFromCartValue,
   calculateDistanceFee,
   calculateSurchargeFromNumberOfItems,

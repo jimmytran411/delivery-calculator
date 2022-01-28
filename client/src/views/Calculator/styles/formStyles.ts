@@ -2,10 +2,24 @@ import { makeStyles } from '@material-ui/core';
 
 export const useFormStyles = makeStyles((theme) => ({
   root: {
+    maxWidth: 960,
     margin: '0 auto',
-    borderRadius: 4,
-    border: '1px #131921 solid',
-    backgroundColor: '#fff',
+    borderRadius: 16,
+    [theme.breakpoints.down('xs')]: {
+      flexDirection: 'column',
+    },
+  },
+
+  formTitle: {
+    fontSize: '2rem',
+    paddingBottom: 20,
+    fontWeight: 500,
+    fontFamily: "'Righteous', cursive",
+    color: '#6ae7fd',
+  },
+
+  left: {
+    margin: '0 auto',
     padding: 32,
     maxWidth: 700,
     [theme.breakpoints.down('xs')]: {
@@ -13,44 +27,47 @@ export const useFormStyles = makeStyles((theme) => ({
     },
   },
 
-  formTitle: {
-    width: 'fit-content',
-  },
-
   form: {
-    padding: '16px 0',
+    padding: 48,
+    [theme.breakpoints.down('xs')]: {
+      padding: 24,
+    },
     display: 'flex',
     flexDirection: 'column',
     width: 'fit-content',
+    borderRadius: '0.5rem',
+    backgroundColor: '#fff',
+    boxShadow: 'rgb(0 0 0 / 6%) 0px 0px 0.125rem 0px, rgb(0 0 0 / 12%) 0px 0.125rem 0.125rem 0px',
+  },
+
+  inputField: {
+    padding: '12px 0',
   },
 
   submitBtn: {
-    margin: '16px 0',
-    padding: 8,
-    backgroundColor: '#131921',
+    padding: 16,
+    backgroundColor: '#009de0',
     color: 'white',
     fontSize: '1.25rem',
-    '& :hover': {
-      color: '#131921',
+    fontWeight: 500,
+    fontFamily: "'Righteous'",
+    borderRadius: 8,
+    margin: '0 auto',
+    marginTop: 24,
+    border: 'none',
+    cursor: 'pointer',
+    '&:hover': {
+      opacity: 0.75,
     },
-  },
-
-  formFooter: {
-    width: 300,
-    padding: '16px 0',
-    '& :hover': {
-      color: '#858585',
-      textDecoration: 'underline',
-    },
-  },
-
-  link: {
-    textDecoration: 'none',
-    color: theme.palette.primary.main,
   },
 
   errorText: {
     color: 'red',
     padding: 4,
+  },
+
+  right: {
+    padding: 16,
+    alignSelf: 'center',
   },
 }));
