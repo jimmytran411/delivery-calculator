@@ -52,21 +52,24 @@ To get a local copy up and running follow these simple steps.
 ### Installation
 
 1. Clone the repo
-   ```sh
-   git clone https://github.com/jimmytran411/wolt-delivery-calculator.git
-   ```
+
+```sh
+git clone https://github.com/jimmytran411/wolt-delivery-calculator.git
+```
+
 2. Install dependencies
    After cloning the repo, you can install the dependencies in the front-end with the following command:
 
-   ```sh
-   yarn install or npm install
-   ```
+```sh
+yarn install or npm install
+```
 
 3. Run the App at localhost:
    After that, make sure you are at server folder. You can start the project with the following command:
-   ```sh
-   yarn start or npm start
-   ```
+
+```sh
+yarn start or npm start
+```
 
 \*\*. Set up with Docker:
 Make sure you are in the root folder and have installed Docker in your machine

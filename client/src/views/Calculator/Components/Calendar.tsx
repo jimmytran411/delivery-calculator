@@ -1,22 +1,21 @@
 import React, { useMemo, useState } from 'react';
 import { identity } from 'lodash';
-import {
-  TableContainer,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  ButtonGroup,
-  Button,
-  Grid,
-  Divider,
-} from '@material-ui/core';
+import { TableContainer, ButtonGroup, Button, Grid, Divider } from '@material-ui/core';
 import { v4 } from 'uuid';
-import { isPast, isThisMonth, isToday } from 'date-fns';
+import { compareAsc, isPast, isThisMonth, isToday } from 'date-fns';
 
-import { daysOfWeek, daysOfWeekLong, getDates, getNextMonth, getPreviousMonth, monthLong, today } from '../utils/date';
+import {
+  daysOfWeek,
+  daysOfWeekLong,
+  getDates,
+  getNextMonth,
+  getPreviousMonth,
+  monthLong,
+  select,
+  today,
+} from '../utils/date';
 import { useCalendarStyles } from '../styles/calendarStyles';
+import { NavigateBefore, NavigateNext } from '@material-ui/icons';
 
 interface CalendarProps {
   handleSelectDate: (fullDate: Date) => void;
@@ -26,7 +25,22 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
   const datesOfCurrentMonth = useMemo(() => getDates(identity), [getDates]);
   const [dates, setDates] = useState(datesOfCurrentMonth);
 
-  const { todayStyle, dateStyle } = useCalendarStyles();
+  const {
+    root,
+    top,
+    header,
+    dateMonth,
+    headerBtn,
+    btnGroup,
+    table,
+    headerCell,
+    tableContent,
+    row,
+    todayStyle,
+    cell,
+    pastDay,
+    selectDateStyle,
+  } = useCalendarStyles();
   const { day, date, month, year } = today;
 
   const handlePreviousMonth = () => {
@@ -38,60 +52,77 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
     setDates(getDates(getNextMonth));
   };
 
+  const cellStyle = (fullDate: Date) => {
+    if (isToday(fullDate)) {
+      return `${todayStyle} ${cell}`;
+    }
+    if (isPast(fullDate)) {
+      return `${pastDay} ${cell}`;
+    }
+    if (compareAsc(fullDate, select(identity)) === 0) {
+      return `${selectDateStyle} ${cell}`;
+    }
+    return cell;
+  };
+
   return (
-    <TableContainer innerRef={ref}>
-      <div>{`${daysOfWeekLong[day]}, ${date} ${monthLong[month]} ${year}`}</div>
+    <TableContainer innerRef={ref} className={root}>
+      <div className={top}>{`${daysOfWeekLong[day]}, ${date} ${monthLong[month]} ${year}`}</div>
       <Divider />
-      <Grid container justifyContent="space-between">
-        <Grid item xs>
-          <div>
-            {monthLong[dates.currentMonth]} {dates.currentYear}
-          </div>
+      <Grid container justifyContent="space-between" className={header}>
+        <Grid item className={dateMonth}>
+          {monthLong[dates.currentMonth]} {dates.currentYear}
         </Grid>
-        <Grid item xs>
+
+        <Grid item className={btnGroup}>
           <ButtonGroup>
             <Button
+              className={headerBtn}
+              variant="text"
               disabled={isThisMonth(new Date(dates.currentYear, dates.currentMonth))}
               onClick={handlePreviousMonth}
-            >{`<`}</Button>
-            <Button onClick={handleNextMonth}>{`>`}</Button>
+            >
+              <NavigateBefore />
+            </Button>
+            <Button className={headerBtn} variant="text" onClick={handleNextMonth}>
+              <NavigateNext />
+            </Button>
           </ButtonGroup>
         </Grid>
       </Grid>
 
-      <Table>
-        <TableHead>
-          <TableRow>
-            {daysOfWeek.map((day) => (
-              <TableCell key={v4()} align="center">
-                {day}
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {dates.datesOfCurrentMonth.map((calendarRow) => (
-            <TableRow key={v4()}>
-              {calendarRow.map(({ date, fullDate }) => (
-                <TableCell
-                  key={v4()}
-                  component="th"
-                  scope="row"
-                  align="center"
-                  className={isToday(fullDate) ? `${todayStyle} ${dateStyle}` : dateStyle}
-                >
-                  <Button
-                    onClick={() => handleSelectDate(fullDate)}
-                    disabled={isToday(fullDate) ? false : isPast(fullDate)}
-                  >
-                    {date}
-                  </Button>
-                </TableCell>
-              ))}
-            </TableRow>
+      <div role="grid" className={table}>
+        <div role="row" className={row}>
+          {daysOfWeek.map((day) => (
+            <span className={headerCell} role="columnheader" key={v4()}>
+              {day}
+            </span>
           ))}
-        </TableBody>
-      </Table>
+        </div>
+        <div role="rolegroup" className={tableContent}>
+          {dates.datesOfCurrentMonth.map((calendarRow) => (
+            <div role="row" className={row} key={v4()}>
+              {calendarRow.map(({ date, fullDate }) => (
+                <span
+                  role="gridcell"
+                  onClick={() => {
+                    if (isPast(fullDate)) {
+                      isToday(fullDate) && handleSelectDate(fullDate);
+                      return;
+                    }
+                    select(() => fullDate);
+                    handleSelectDate(fullDate);
+                  }}
+                  key={v4()}
+                  className={cellStyle(fullDate)}
+                >
+                  {date}
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
     </TableContainer>
   );
 });
