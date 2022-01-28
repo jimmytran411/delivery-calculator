@@ -2,9 +2,18 @@ import React, { useMemo, useState } from 'react';
 import { identity } from 'lodash';
 import { TableContainer, ButtonGroup, Button, Grid, Divider } from '@material-ui/core';
 import { v4 } from 'uuid';
-import { isPast, isThisMonth, isToday } from 'date-fns';
+import { compareAsc, isPast, isThisMonth, isToday } from 'date-fns';
 
-import { daysOfWeek, daysOfWeekLong, getDates, getNextMonth, getPreviousMonth, monthLong, today } from '../utils/date';
+import {
+  daysOfWeek,
+  daysOfWeekLong,
+  getDates,
+  getNextMonth,
+  getPreviousMonth,
+  monthLong,
+  select,
+  today,
+} from '../utils/date';
 import { useCalendarStyles } from '../styles/calendarStyles';
 import { NavigateBefore, NavigateNext } from '@material-ui/icons';
 
@@ -30,6 +39,7 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
     todayStyle,
     cell,
     pastDay,
+    selectDateStyle,
   } = useCalendarStyles();
   const { day, date, month, year } = today;
 
@@ -40,6 +50,19 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
 
   const handleNextMonth = () => {
     setDates(getDates(getNextMonth));
+  };
+
+  const cellStyle = (fullDate: Date) => {
+    if (isToday(fullDate)) {
+      return `${todayStyle} ${cell}`;
+    }
+    if (isPast(fullDate)) {
+      return `${pastDay} ${cell}`;
+    }
+    if (compareAsc(fullDate, select(identity)) === 0) {
+      return `${selectDateStyle} ${cell}`;
+    }
+    return cell;
   };
 
   return (
@@ -87,12 +110,11 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
                       isToday(fullDate) && handleSelectDate(fullDate);
                       return;
                     }
+                    select(() => fullDate);
                     handleSelectDate(fullDate);
                   }}
                   key={v4()}
-                  className={
-                    isToday(fullDate) ? `${todayStyle} ${cell}` : isPast(fullDate) ? `${pastDay} ${cell}` : cell
-                  }
+                  className={cellStyle(fullDate)}
                 >
                   {date}
                 </span>

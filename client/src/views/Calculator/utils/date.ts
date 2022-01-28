@@ -116,3 +116,13 @@ export {
   getDatesOfMonth,
   getNewDate,
 };
+
+const sD = () => {
+  let selectedDate: Date;
+  return (f: (date: Date) => Date) => {
+    selectedDate = f(selectedDate);
+    return selectedDate;
+  };
+};
+
+export const select = sD();

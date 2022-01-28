@@ -71,7 +71,8 @@ export const useCalendarStyles = makeStyles((theme) => ({
     padding: 12,
     borderRadius: '50%',
     '&:hover': {
-      opacity: 0.5,
+      fontWeight: 700,
+      textDecoration: 'underline',
     },
   },
 
@@ -87,6 +88,11 @@ export const useCalendarStyles = makeStyles((theme) => ({
       opacity: 1,
     },
   },
+
+  selectDateStyle: {
+    fontWeight: 700,
+    textDecoration: 'underline',
+  },
 }));
 
 export const theme = createTheme({
@@ -98,7 +104,6 @@ export const theme = createTheme({
       },
       list: {
         padding: 0,
-        width: 'fit-content',
       },
     },
   },
