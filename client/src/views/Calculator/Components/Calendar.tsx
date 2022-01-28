@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { identity } from 'lodash';
 import {
   TableContainer,
-  Paper,
   Table,
   TableHead,
   TableRow,
@@ -27,7 +26,7 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
   const datesOfCurrentMonth = useMemo(() => getDates(identity), [getDates]);
   const [dates, setDates] = useState(datesOfCurrentMonth);
 
-  const { todayStyle, dateStyle } = useCalendarStyles();
+  const { root, row, todayStyle, dateStyle } = useCalendarStyles();
   const { day, date, month, year } = today;
 
   const handlePreviousMonth = () => {
@@ -40,7 +39,7 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
   };
 
   return (
-    <TableContainer component={Paper} innerRef={ref}>
+    <TableContainer innerRef={ref} className={root}>
       <div>{`${daysOfWeekLong[day]}, ${date} ${monthLong[month]} ${year}`}</div>
       <Divider />
       <Grid container justifyContent="space-between">
@@ -71,9 +70,9 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
           </TableRow>
         </TableHead>
         <TableBody>
-          {dates.datesOfCurrentMonth.map((row) => (
+          {dates.datesOfCurrentMonth.map((calendarRow) => (
             <TableRow key={v4()}>
-              {row.map(({ date, fullDate }) => (
+              {calendarRow.map(({ date, fullDate }) => (
                 <TableCell
                   key={v4()}
                   component="th"
