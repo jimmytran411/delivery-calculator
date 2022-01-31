@@ -47,19 +47,6 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
     return cell;
   };
 
-  const cellStyle = (fullDate: Date) => {
-    if (isToday(fullDate)) {
-      return `${todayStyle} ${cell}`;
-    }
-    if (isPast(fullDate)) {
-      return `${pastDay} ${cell}`;
-    }
-    if (compareAsc(fullDate, select(identity)) === 0) {
-      return `${selectDateStyle} ${cell}`;
-    }
-    return cell;
-  };
-
   return (
     <TableContainer innerRef={ref} className={root}>
       <div className={top}>{`${daysOfWeekLong[day]}, ${date} ${monthLong[month]} ${year}`}</div>
