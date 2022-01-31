@@ -90,8 +90,8 @@ export const useCalendarStyles = makeStyles((theme) => ({
   },
 
   selectDateStyle: {
-    fontWeight: 700,
-    textDecoration: 'underline',
+    fontWeight: 800,
+    border: '1px solid #70757a',
   },
 }));
 

@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { FormControl, Grid, InputAdornment, InputLabel, OutlinedInput, ThemeProvider } from '@material-ui/core';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Grid, InputAdornment, ThemeProvider } from '@material-ui/core';
 import _ from 'lodash';
 import { format } from 'date-fns';
 
@@ -12,6 +12,7 @@ import { ResultSumary } from './Components/ResultSumary';
 import { useFormValidation } from './customHooks/useFormValidation';
 import { useCalculateFee } from './customHooks/useCalculateFee';
 import { deliveryHours } from './utils/date';
+import { useCalendar } from './context/CalendarContext';
 
 export interface CalculatorInput {
   cartValue: string;
@@ -33,6 +34,7 @@ export const Calculator = () => {
 
   const { errors, validateField, isEmptyError } = useFormValidation();
   const { result, calculateFee } = useCalculateFee();
+  const { selectedDate } = useCalendar();
   const { root, formTitle, left, form, inputField, submitBtn, right } = useFormStyles();
 
   const handleSubmit = (e: React.SyntheticEvent) => {
@@ -53,15 +55,21 @@ export const Calculator = () => {
     []
   );
 
-  const handleSelectDate = (fullDate: Date) => {
-    setInputFields((prev) => ({ ...prev, fullDate }));
-  };
-
   const handleSelectTime = (time: string) => {
     time === 'now'
       ? setInputFields((prev) => ({ ...prev, hour: new Date().getHours() }))
       : setInputFields((prev) => ({ ...prev, hour: +time.split(':')[0] }));
   };
+
+  useEffect(() => {
+    if (!isEmptyError) {
+      setOpenResult(false);
+    }
+  }, [isEmptyError]);
+
+  useEffect(() => {
+    setInputFields((prev) => ({ ...prev, fullDate: selectedDate }));
+  }, [selectedDate]);
 
   return (
     <Grid container className={root}>
@@ -74,39 +82,44 @@ export const Calculator = () => {
             label="cart value"
             name="cartValue"
             error={errors.cartValue}
-            handleInput={(input) => handleInput(input, 'cartValue')}
+            inputProps={{
+              onChange: (event) => handleInput(event.target.value, 'cartValue'),
+            }}
           />
           <InputField
             className={inputField}
             label="delivery distance"
             name="deliverDistance"
             error={errors.deliveryDistance}
-            handleInput={(input) => handleInput(input, 'deliveryDistance')}
+            inputProps={{
+              onChange: (event) => handleInput(event.target.value, 'deliveryDistance'),
+            }}
           />
           <InputField
             className={inputField}
             label="items amount"
             name="amountOfItems"
             error={errors.amountOfItems}
-            handleInput={(input) => handleInput(input, 'amountOfItems')}
+            inputProps={{
+              onChange: (event) => handleInput(event.target.value, 'amountOfItems'),
+            }}
           />
 
-          <FormControl className={inputField} variant="outlined">
-            <InputLabel htmlFor="date">{_.capitalize('delivery date')}</InputLabel>
-            <OutlinedInput
-              id="date"
-              type="text"
-              label="date"
-              endAdornment={
+          <InputField
+            className={inputField}
+            label="date"
+            name="date"
+            inputProps={{
+              endAdornment: (
                 <InputAdornment position="end">
                   <ThemeProvider theme={theme}>
-                    <CalendarMenu handleSelectDate={handleSelectDate} />
+                    <CalendarMenu />
                   </ThemeProvider>
                 </InputAdornment>
-              }
-              value={format(inputFields.fullDate, 'PPP')}
-            />
-          </FormControl>
+              ),
+              value: format(inputFields.fullDate, 'PPP'),
+            }}
+          />
 
           <TimeSelect listOfHours={deliveryHours} handleSelectTime={handleSelectTime} />
 
