@@ -4,11 +4,7 @@ import { EventNote } from '@material-ui/icons';
 
 import { Calendar } from './Calendar';
 
-interface CalendarMenuProps {
-  handleSelectDate: (fullDate: Date) => void;
-}
-
-export function CalendarMenu({ handleSelectDate }: CalendarMenuProps) {
+export function CalendarMenu() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -42,9 +38,8 @@ export function CalendarMenu({ handleSelectDate }: CalendarMenuProps) {
         }}
       >
         <Calendar
-          handleSelectDate={(...args) => {
+          handleSelectDate={() => {
             handleClose();
-            handleSelectDate(...args);
           }}
         />
       </Menu>
