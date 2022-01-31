@@ -4,7 +4,7 @@ import { chunk } from 'lodash';
 import { DayInWeek } from '../../../commonTypes';
 
 type DateOfMonth = { date: number; fullDate: Date };
-interface CurrentCalendarMonth {
+export interface CurrentCalendarMonth {
   currentMonth: number;
   currentYear: number;
   datesOfCurrentMonth: DateOfMonth[][];
@@ -61,7 +61,7 @@ const getDatesOfMonth = (firstDateOfCalendar: Date): DateOfMonth[][] => {
   );
 };
 
-const getNewDate = (month = today.month, year = today.year) => {
+const getCalendarMonth = (month = today.month, year = today.year) => {
   const firstDateOfThisMonth = new Date(year, month, 1);
   let current = {
     currentMonth: month,
@@ -102,19 +102,27 @@ const getPreviousMonth = (current: CurrentCalendarMonth): CurrentCalendarMonth =
   };
 };
 
-const getDates = getNewDate();
+const selectDate = () => {
+  let selectedDate = new Date();
+  return (f: (date: Date) => Date) => {
+    selectedDate = f(selectedDate);
+    return selectedDate;
+  };
+};
+
+const selectDeliveryDate = selectDate();
 
 export {
   deliveryHours,
   monthLong,
   daysOfWeek,
-  getDates,
   getNextMonth,
   getPreviousMonth,
   today,
   daysOfWeekLong,
   getDatesOfMonth,
-  getNewDate,
+  getCalendarMonth,
+  selectDeliveryDate,
 };
 
 const sD = () => {

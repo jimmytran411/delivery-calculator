@@ -1,29 +1,20 @@
-import React, { useMemo, useState } from 'react';
-import { identity } from 'lodash';
+import React from 'react';
 import { TableContainer, ButtonGroup, Button, Grid, Divider } from '@material-ui/core';
 import { v4 } from 'uuid';
 import { compareAsc, isPast, isThisMonth, isToday } from 'date-fns';
 
-import {
-  daysOfWeek,
-  daysOfWeekLong,
-  getDates,
-  getNextMonth,
-  getPreviousMonth,
-  monthLong,
-  select,
-  today,
-} from '../utils/date';
+import { daysOfWeek, daysOfWeekLong, monthLong, today } from '../utils/date';
 import { useCalendarStyles } from '../styles/calendarStyles';
 import { NavigateBefore, NavigateNext } from '@material-ui/icons';
+import { useCalendar } from '../context/CalendarContext';
 
 interface CalendarProps {
-  handleSelectDate: (fullDate: Date) => void;
+  handleSelectDate: () => void;
 }
 
 export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelectDate }, ref) => {
-  const datesOfCurrentMonth = useMemo(() => getDates(identity), [getDates]);
-  const [dates, setDates] = useState(datesOfCurrentMonth);
+  const { currentCalendarMonth, selectedDate, selectDate, getNextCalendarMonth, getPreviousCalendarMonth } =
+    useCalendar();
 
   const {
     root,
@@ -43,13 +34,17 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
   } = useCalendarStyles();
   const { day, date, month, year } = today;
 
-  const handlePreviousMonth = () => {
-    const datesOfPreviousMonth = getDates(getPreviousMonth);
-    setDates(datesOfPreviousMonth);
-  };
-
-  const handleNextMonth = () => {
-    setDates(getDates(getNextMonth));
+  const cellStyle = (fullDate: Date) => {
+    if (isToday(fullDate)) {
+      return `${todayStyle} ${cell}`;
+    }
+    if (isPast(fullDate)) {
+      return `${pastDay} ${cell}`;
+    }
+    if (compareAsc(fullDate, selectedDate) === 0) {
+      return `${selectDateStyle} ${cell}`;
+    }
+    return cell;
   };
 
   const cellStyle = (fullDate: Date) => {
@@ -71,7 +66,7 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
       <Divider />
       <Grid container justifyContent="space-between" className={header}>
         <Grid item className={dateMonth}>
-          {monthLong[dates.currentMonth]} {dates.currentYear}
+          {monthLong[currentCalendarMonth.currentMonth]} {currentCalendarMonth.currentYear}
         </Grid>
 
         <Grid item className={btnGroup}>
@@ -79,12 +74,12 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
             <Button
               className={headerBtn}
               variant="text"
-              disabled={isThisMonth(new Date(dates.currentYear, dates.currentMonth))}
-              onClick={handlePreviousMonth}
+              disabled={isThisMonth(new Date(currentCalendarMonth.currentYear, currentCalendarMonth.currentMonth))}
+              onClick={getPreviousCalendarMonth}
             >
               <NavigateBefore />
             </Button>
-            <Button className={headerBtn} variant="text" onClick={handleNextMonth}>
+            <Button className={headerBtn} variant="text" onClick={getNextCalendarMonth}>
               <NavigateNext />
             </Button>
           </ButtonGroup>
@@ -100,18 +95,21 @@ export const Calendar: React.FC<CalendarProps> = React.forwardRef(({ handleSelec
           ))}
         </div>
         <div role="rolegroup" className={tableContent}>
-          {dates.datesOfCurrentMonth.map((calendarRow) => (
+          {currentCalendarMonth.datesOfCurrentMonth.map((calendarRow) => (
             <div role="row" className={row} key={v4()}>
               {calendarRow.map(({ date, fullDate }) => (
                 <span
                   role="gridcell"
                   onClick={() => {
                     if (isPast(fullDate)) {
-                      isToday(fullDate) && handleSelectDate(fullDate);
+                      if (isToday(fullDate)) {
+                        selectDate(fullDate);
+                        handleSelectDate();
+                      }
                       return;
                     }
-                    select(() => fullDate);
-                    handleSelectDate(fullDate);
+                    handleSelectDate();
+                    selectDate(fullDate);
                   }}
                   key={v4()}
                   className={cellStyle(fullDate)}
