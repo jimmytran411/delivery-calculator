@@ -6,6 +6,7 @@ import { makeStyles } from '@material-ui/core';
 import makeStore from './rootRedux/store';
 import { history } from './rootRedux/store';
 import { Calculator } from './views/Calculator';
+import { CalendarProvider } from './views/Calculator/context/CalendarContext';
 
 export const store = makeStore();
 export type RootState = ReturnType<typeof store.getState>;
@@ -24,7 +25,9 @@ const App: React.FC = () => {
     <Provider store={store}>
       <ConnectedRouter history={history}>
         <div className={root}>
-          <Calculator />
+          <CalendarProvider>
+            <Calculator />
+          </CalendarProvider>
         </div>
       </ConnectedRouter>
     </Provider>

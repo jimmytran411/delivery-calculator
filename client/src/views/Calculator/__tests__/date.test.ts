@@ -1,10 +1,10 @@
 import { identity } from 'lodash';
-import { getDatesOfMonth, getNewDate, getNextMonth, getPreviousMonth } from '../utils/date';
+import { getDatesOfMonth, getCalendarMonth, getNextMonth, getPreviousMonth } from '../utils/date';
 
 describe('Date functions test', () => {
   const month = 0;
   const year = 2022;
-  const getDates = getNewDate(month, year);
+  const getDates = getCalendarMonth(month, year);
   test('it should get the dates of calendar given the first day of the calendar', () => {
     const dates = getDatesOfMonth(new Date(2021, 11, 31)).map((row) => row.map(({ date }) => date));
     expect(dates.length).toEqual(5);
@@ -17,7 +17,7 @@ describe('Date functions test', () => {
     ]);
   });
 
-  test('it should get the calendar dates when create new getNewDate', () => {
+  test('it should get the calendar dates when create new getCalendarMonth', () => {
     const currentCalendarMonth = getDates(identity);
     const dates = currentCalendarMonth.datesOfCurrentMonth.map((row) => row.map(({ date }) => date));
     expect(dates).toEqual([

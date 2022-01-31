@@ -5,7 +5,7 @@
   <p align="center">
     Wolt Delivery Calculator
     <br />
-    <a >View Demo(To be available soon)</a>
+    <a href="https://master.dcwtnwxs7tv5m.amplifyapp.com/">View Demo</a>
     ·
     <a href="https://github.com/jimmytran411/wolt-delivery-calculator/issues">Report Bug</a>
     ·
