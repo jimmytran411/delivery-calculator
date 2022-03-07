@@ -1,5 +1,10 @@
 import { memoize } from 'lodash';
+
+import { DeliveryInput } from '..';
 import { DayInWeek, PromotionTime } from '../../../commonTypes';
+import { CalculateDeliveryResult } from '../Components/ResultSumary';
+
+const daysOfWeekLong: DayInWeek[] = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 const baseCartValue = 10;
 const baseDistanceValue = {
@@ -24,12 +29,27 @@ export type CheckPromotionArg = {
   promotionDate: PromotionTime[];
 };
 
-const calculatePipe =
-  <T>(...fns: ComposeReturn<T>[]) =>
-  (...args: T[]): number =>
-    fns.reduce((acc, currentFn, index) => (acc < 0 ? acc : currentFn(acc, args[index])), 0); // -1 trigger a stop for the pipe
+const calculateFee = (calculateInputs: DeliveryInput): CalculateDeliveryResult => {
+  const { cartValue, deliveryDistance, amountOfItems, fullDate, hour } = calculateInputs;
+  const cartValueCharge = calculateSurchargeFromCartValue(+cartValue);
+  const distanceCharge = calculateDistanceFee(+deliveryDistance);
+  const itemAmountCharge = calculateSurchargeFromNumberOfItems(+amountOfItems);
+  const multiplier = checkPromotion({ day: daysOfWeekLong[fullDate.getDay()], hour, promotionDate });
 
-type ComposeReturn<T> = (x: number, arg: T) => number;
+  const total = cartValueCharge < 0 ? 0 : (cartValueCharge + distanceCharge + itemAmountCharge) * multiplier;
+  const discount = total > maximumDeliveryFee ? total - maximumDeliveryFee : 0;
+  const specialCharge = total - (cartValueCharge + distanceCharge + itemAmountCharge);
+  return total > 0
+    ? { cartValueCharge, distanceCharge, itemAmountCharge, specialCharge, discount, total }
+    : {
+        cartValueCharge: 0,
+        distanceCharge: 0,
+        itemAmountCharge: 0,
+        specialCharge: 0,
+        discount: 0,
+        total: 0,
+      };
+};
 
 const checkDeliveryFee = (fee: number): number => {
   if (fee < 0) return 0;
@@ -67,7 +87,7 @@ const checkPromotion = memoize(({ day, hour, promotionDate }: CheckPromotionArg)
 export {
   maximumDeliveryFee,
   checkPromotion,
-  calculatePipe,
+  calculateFee,
   calculateSurchargeFromCartValue,
   calculateDistanceFee,
   calculateSurchargeFromNumberOfItems,

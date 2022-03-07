@@ -2,7 +2,6 @@ import React from 'react';
 import { makeStyles } from '@material-ui/core';
 
 import { Calculator } from './views/Calculator';
-import { CalendarProvider } from './views/Calculator/context/CalendarContext';
 
 const useAppStyles = makeStyles(() => ({
   root: {
@@ -15,9 +14,7 @@ const App: React.FC = () => {
   const { root } = useAppStyles();
   return (
     <div className={root}>
-      <CalendarProvider>
-        <Calculator />
-      </CalendarProvider>
+      <Calculator />
     </div>
   );
 };

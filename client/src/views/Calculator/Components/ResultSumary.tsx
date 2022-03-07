@@ -3,15 +3,16 @@ import { Divider, Grid } from '@material-ui/core';
 import { checkDeliveryFee } from '../utils/calculateFn';
 import { useResultSummaryStyles } from '../styles/useResultSummaryStyles';
 
+export interface CalculateDeliveryResult {
+  cartValueCharge: number;
+  distanceCharge: number;
+  itemAmountCharge: number;
+  specialCharge: number;
+  discount: number;
+  total: number;
+}
 interface ResultSumaryProps {
-  result: {
-    cartValueCharge: number;
-    distanceCharge: number;
-    itemAmountCharge: number;
-    specialCharge: number;
-    discount: number;
-    total: number;
-  };
+  result: CalculateDeliveryResult;
 }
 
 export const ResultSumary = ({ result }: ResultSumaryProps) => {
