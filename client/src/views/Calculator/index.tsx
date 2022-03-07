@@ -1,20 +1,16 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Grid, InputAdornment, ThemeProvider } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
 import _ from 'lodash';
-import { format } from 'date-fns';
+import DateFnsUtils from '@date-io/date-fns';
 
 import { InputField } from './Components/InputField';
 import { useFormStyles } from './styles/formStyles';
-import { CalendarMenu } from './Components/CalendarMenu';
-import { TimeSelect } from './Components/TimeSelect';
-import { theme } from './styles/calendarStyles';
-import { ResultSumary } from './Components/ResultSumary';
+import { CalculateDeliveryResult, ResultSumary } from './Components/ResultSumary';
 import { useFormValidation } from './customHooks/useFormValidation';
-import { useCalculateFee } from './customHooks/useCalculateFee';
-import { deliveryHours } from './utils/date';
-import { useCalendar } from './context/CalendarContext';
+import { calculateFee } from './utils/calculateFn';
+import { DatePicker, MuiPickersUtilsProvider, TimePicker } from '@material-ui/pickers';
 
-export interface CalculatorInput {
+export interface DeliveryInput {
   cartValue: string;
   deliveryDistance: string;
   amountOfItems: string;
@@ -23,7 +19,7 @@ export interface CalculatorInput {
 }
 
 export const Calculator = () => {
-  const [inputFields, setInputFields] = useState<CalculatorInput>({
+  const [inputFields, setInputFields] = useState<DeliveryInput>({
     cartValue: '',
     deliveryDistance: '',
     amountOfItems: '',
@@ -31,10 +27,16 @@ export const Calculator = () => {
     hour: new Date().getHours(),
   });
   const [openResult, setOpenResult] = useState(false);
+  const [result, setResult] = useState<CalculateDeliveryResult>({
+    cartValueCharge: 0,
+    distanceCharge: 0,
+    itemAmountCharge: 0,
+    specialCharge: 0,
+    discount: 0,
+    total: 0,
+  });
 
   const { errors, validateField, isEmptyError } = useFormValidation();
-  const { result, calculateFee } = useCalculateFee();
-  const { selectedDate } = useCalendar();
   const { root, formTitle, left, form, inputField, submitBtn, right } = useFormStyles();
 
   const handleSubmit = (e: React.SyntheticEvent) => {
@@ -42,24 +44,18 @@ export const Calculator = () => {
     Object.entries(inputFields).forEach(([key, value]) => validateField(value, key));
 
     if (isEmptyError) {
-      calculateFee(inputFields);
+      setResult(calculateFee(inputFields));
       setOpenResult(true);
     }
   };
 
   const handleInput = useCallback(
-    _.debounce((input: string, prop: string) => {
+    _.debounce((input: string | Date, prop: keyof DeliveryInput) => {
       validateField(input, prop);
       setInputFields((prev) => ({ ...prev, [prop]: input }));
     }, 300),
     []
   );
-
-  const handleSelectTime = (time: string) => {
-    time === 'now'
-      ? setInputFields((prev) => ({ ...prev, hour: new Date().getHours() }))
-      : setInputFields((prev) => ({ ...prev, hour: +time.split(':')[0] }));
-  };
 
   useEffect(() => {
     if (!isEmptyError) {
@@ -67,16 +63,11 @@ export const Calculator = () => {
     }
   }, [isEmptyError]);
 
-  useEffect(() => {
-    setInputFields((prev) => ({ ...prev, fullDate: selectedDate }));
-  }, [selectedDate]);
-
   return (
     <Grid container className={root}>
       <Grid item xs className={left}>
         <form onSubmit={handleSubmit} className={form}>
           <span className={formTitle}>Delivery Calculator</span>
-
           <InputField
             className={inputField}
             label="cart value"
@@ -104,24 +95,22 @@ export const Calculator = () => {
               onChange: (event) => handleInput(event.target.value, 'amountOfItems'),
             }}
           />
-
-          <InputField
-            className={inputField}
-            label="date"
-            name="date"
-            inputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <ThemeProvider theme={theme}>
-                    <CalendarMenu />
-                  </ThemeProvider>
-                </InputAdornment>
-              ),
-              value: format(inputFields.fullDate, 'PPP'),
-            }}
-          />
-
-          <TimeSelect listOfHours={deliveryHours} handleSelectTime={handleSelectTime} />
+          <MuiPickersUtilsProvider utils={DateFnsUtils}>
+            <DatePicker
+              className={inputField}
+              inputVariant="outlined"
+              label="Date"
+              value={inputFields.fullDate}
+              onChange={(e) => handleInput(e?.toString() ?? new Date(), 'fullDate')}
+            />
+            <TimePicker
+              className={inputField}
+              inputVariant="outlined"
+              label="Time"
+              value={inputFields.fullDate}
+              onChange={(e) => handleInput(e?.getHours().toString() ?? new Date().getHours().toString(), 'hour')}
+            />
+          </MuiPickersUtilsProvider>
 
           <button className={submitBtn} type="submit">
             Calculate Delivery Price
